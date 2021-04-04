@@ -1,12 +1,12 @@
-#ifndef THESIS_BUFFER_HPP
-#define THESIS_BUFFER_HPP
+#ifndef HQR_LIB_BUFFER_HPP
+#define HQR_LIB_BUFFER_HPP
+
+#include <chrono>
+#include <cstddef>
+#include <deque>
 
 #include "sample.hpp"
 #include "spectrum.hpp"
-
-#include <deque>
-#include <cstddef>
-#include <chrono>
 
 namespace th {
 
@@ -16,12 +16,12 @@ namespace th {
 
    public:
     void add_sample(sample_t sample);
-    sample_t get_sample(std::size_t index) const;
+    sample_t sample(std::size_t index) const;
     sample_t operator[](std::size_t index) const;
 
-    buffer_t &get_buffer() &;
-    const buffer_t &get_buffer() const &;
-    const buffer_t &get_buffer() const && = delete;
+    buffer_t& data() &;
+    const buffer_t& data() const&;
+    const buffer_t& data() const&& = delete;
 
     Spectrum discrete_fourier_transform() const;
     Spectrum short_time_fourier_transform() const;
@@ -36,6 +36,6 @@ namespace th {
     buffer_t m_samples;
   };
 
-}
+}  // namespace th
 
-#endif //THESIS_BUFFER_HPP
+#endif // HQR_LIB_BUFFER_HPP

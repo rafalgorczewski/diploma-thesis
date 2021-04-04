@@ -5,6 +5,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -O0 -g")
 
 set(THL_SRC
-        buffer.cpp buffer.hpp sample.hpp spectrum.hpp)
+        buffer.cpp buffer.hpp
+        sample.hpp
+        spectrum.hpp
+        stream.cpp stream.hpp
+        streamreader.cpp streamreader.hpp)
 
 add_library(thesis_lib ${THL_SRC})
