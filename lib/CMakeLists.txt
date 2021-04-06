@@ -12,3 +12,4 @@ set(THL_SRC
         streamreader.cpp streamreader.hpp)
 
 add_library(thesis_lib ${THL_SRC})
+target_link_libraries(thesis_lib fftw3 m)

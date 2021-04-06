@@ -28,7 +28,7 @@ namespace th {
   }
 
   Spectrum Stream::discrete_fourier_transform(
-    std::size_t channel_number) const {
+    std::size_t channel_number)  {
     return m_channels[channel_number].discrete_fourier_transform();
   }
 

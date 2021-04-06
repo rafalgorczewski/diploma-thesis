@@ -3,7 +3,7 @@
 
 #include <chrono>
 #include <cstddef>
-#include <deque>
+#include <vector>
 
 #include "sample.hpp"
 #include "spectrum.hpp"
@@ -12,7 +12,7 @@ namespace th {
 
   class Buffer {
    public:
-    using buffer_t = std::deque<sample_t>;
+    using buffer_t = std::vector<sample_t>;
 
    public:
     void add_sample(sample_t sample);
@@ -23,7 +23,7 @@ namespace th {
     const buffer_t& data() const&;
     const buffer_t& data() const&& = delete;
 
-    Spectrum discrete_fourier_transform() const;
+    Spectrum discrete_fourier_transform();
     Spectrum short_time_fourier_transform() const;
     Spectrum wavelet_transform() const;
 

@@ -25,36 +25,41 @@ namespace th {
     m_plot_button->resize(100, 50);
 
     m_spectrum_chart->legend()->hide();
-    m_spectrum_chart->createDefaultAxes();
 
     QHBoxLayout* layout = new QHBoxLayout(central_widget);
-    layout->addWidget(m_resolve_button);
-    layout->addWidget(m_plot_button);
+    QVBoxLayout* left_pane = new QVBoxLayout;
+    layout->addLayout(left_pane);
+    left_pane->addWidget(m_resolve_button);
+    left_pane->addWidget(m_plot_button);
     layout->addWidget(m_chartview);
 
     connect(
       m_resolve_button, &QPushButton::clicked, this, &Window::resolve_stream);
-    connect(m_plot_button, &QPushButton::clicked, this, &Window::plot_spectrum);
+    connect(m_plot_button, &QPushButton::clicked, [this] {
+      m_plot_button->setEnabled(false);
+      plot_timer->start(SAMPLING_DURATION);
+    });
+    connect(plot_timer, &QTimer::timeout, this, &Window::plot_spectrum);
   }
 
   void Window::resolve_stream() {
     m_stream_reader.resolve_stream("MyAudioStream");
-    qDebug() << "resolved";
+    m_resolve_button->setEnabled(false);
   }
 
   void Window::plot_spectrum() {
     QLineSeries* series = new QLineSeries();
 
-    qDebug() << "read";
-    m_stream_reader.read(100ms);
-    qDebug() << "spectrum";
+    m_stream_reader.read(std::chrono::milliseconds(SAMPLING_DURATION));
     const Spectrum spectrum = m_stream_reader.spectrum(0, TransformType::Dft);
 
-    qDebug() << "plot";
-    for (int i = 0; i < spectrum.frequencies.size(); ++i) {
+    for (std::size_t i = 0;
+         i < spectrum.frequencies.size() / SPECTRUM_REDUCTION_FACTOR;
+         ++i) {
       series->append(spectrum.frequencies[i], spectrum.magnitudes[i]);
     }
-
+    m_spectrum_chart->removeAllSeries();
     m_spectrum_chart->addSeries(series);
+    m_spectrum_chart->createDefaultAxes();
   }
 }  // namespace th
