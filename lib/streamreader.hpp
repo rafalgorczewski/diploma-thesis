@@ -15,7 +15,7 @@ namespace th {
    public:
     void resolve_stream(const std::string& name);
     void read(std::chrono::milliseconds ms);
-    Spectrum spectrum(std::size_t channel_number, TransformType transform_type);
+    Spectrum spectrum(std::size_t channel_number);
 
    private:
     lsl::stream_info m_stream_info;

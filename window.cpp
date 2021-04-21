@@ -31,6 +31,7 @@ namespace th {
     layout->addLayout(left_pane);
     left_pane->addWidget(m_resolve_button);
     left_pane->addWidget(m_plot_button);
+    left_pane->addWidget(m_power_label);
     layout->addWidget(m_chartview);
 
     connect(
@@ -51,7 +52,8 @@ namespace th {
     QLineSeries* series = new QLineSeries();
 
     m_stream_reader.read(std::chrono::milliseconds(SAMPLING_DURATION));
-    const Spectrum spectrum = m_stream_reader.spectrum(0, TransformType::Dft);
+    const Spectrum spectrum = m_stream_reader.spectrum(0);
+    m_power_label->setText(QString::number(spectrum.band_power(8, 12)));
 
     for (std::size_t i = 0;
          i < spectrum.frequencies.size() / SPECTRUM_REDUCTION_FACTOR;

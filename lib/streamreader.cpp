@@ -28,28 +28,8 @@ namespace th {
     }
   }
 
-  Spectrum StreamReader::spectrum(std::size_t channel_number,
-                                  TransformType transform_type) {
-    Spectrum spectrum;
-
-    switch (transform_type) {
-      case TransformType::Dft: {
-        spectrum = m_stream.discrete_fourier_transform(channel_number);
-        break;
-      }
-      case TransformType::Stft: {
-        spectrum = m_stream.short_time_fourier_transform(channel_number);
-        break;
-      }
-      case TransformType::Wt: {
-        spectrum = m_stream.wavelet_transform(channel_number);
-        break;
-      }
-      default:
-        spectrum = {};
-        break;
-    }
-    return spectrum;
+  Spectrum StreamReader::spectrum(std::size_t channel_number) {
+    return m_stream.discrete_fourier_transform(channel_number);
   }
 
 }  // namespace th

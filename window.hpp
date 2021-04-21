@@ -1,6 +1,7 @@
 #ifndef HQR_WINDOW_HPP
 #define HQR_WINDOW_HPP
 
+#include <QLabel>
 #include <QMainWindow>
 #include <QPushButton>
 #include <QTimer>
@@ -22,7 +23,7 @@ namespace th {
 
    private:
     static constexpr int SAMPLING_DURATION = 250;
-    static constexpr int SPECTRUM_REDUCTION_FACTOR = 5;
+    static constexpr int SPECTRUM_REDUCTION_FACTOR = 40;
 
    private:
     StreamReader m_stream_reader;
@@ -34,6 +35,7 @@ namespace th {
 
     QPushButton* m_resolve_button = new QPushButton;
     QPushButton* m_plot_button = new QPushButton;
+    QLabel* m_power_label = new QLabel;
   };
 
 }  // namespace th

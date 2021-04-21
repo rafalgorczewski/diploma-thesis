@@ -24,8 +24,6 @@ namespace th {
     const buffer_t& data() const&& = delete;
 
     Spectrum discrete_fourier_transform();
-    Spectrum short_time_fourier_transform() const;
-    Spectrum wavelet_transform() const;
 
     buffer_t::iterator begin();
     buffer_t::iterator end();
@@ -38,4 +36,4 @@ namespace th {
 
 }  // namespace th
 
-#endif // HQR_LIB_BUFFER_HPP
+#endif  // HQR_LIB_BUFFER_HPP

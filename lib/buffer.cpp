@@ -53,14 +53,6 @@ namespace th {
     return result;
   }
 
-  Spectrum Buffer::short_time_fourier_transform() const {
-    return {};
-  }
-
-  Spectrum Buffer::wavelet_transform() const {
-    return {};
-  }
-
   Buffer::buffer_t::iterator Buffer::begin() {
     return m_samples.begin();
   }

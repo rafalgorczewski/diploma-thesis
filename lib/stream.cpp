@@ -27,18 +27,8 @@ namespace th {
     return m_channels[channel_number];
   }
 
-  Spectrum Stream::discrete_fourier_transform(
-    std::size_t channel_number)  {
+  Spectrum Stream::discrete_fourier_transform(std::size_t channel_number) {
     return m_channels[channel_number].discrete_fourier_transform();
-  }
-
-  Spectrum Stream::short_time_fourier_transform(
-    std::size_t channel_number) const {
-    return m_channels[channel_number].short_time_fourier_transform();
-  }
-
-  Spectrum Stream::wavelet_transform(std::size_t channel_number) const {
-    return m_channels[channel_number].wavelet_transform();
   }
 
 }  // namespace th
