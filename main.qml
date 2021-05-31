@@ -21,6 +21,23 @@ ApplicationWindow {
 
   Calibration {
     id: backendCalibration
+
+    onCalibrationStarted: {
+      calibrateButton.enabled = false
+    }
+    onRunStarted: {
+      calibrationLayout.currentIndex = arrowIndex
+      arrow.opacity = 0.25
+    }
+    onImageryPhaseStarted: {
+      arrow.opacity = 1.0
+    }
+    onImageryPhaseFinished: {
+      arrow.opacity = 0.05
+    }
+    onCalibrationFinished: {
+      calibrateButton.enabled = true
+    }
   }
 
   Rectangle {
@@ -73,7 +90,7 @@ ApplicationWindow {
       color: Material.accentColor
 
       Label {
-        text: "＿"
+        text: "―"
       }
 
       MouseArea {
@@ -130,9 +147,12 @@ ApplicationWindow {
           }
 
           Button {
+            id: calibrateButton
             Layout.fillWidth: true
 
             text: "Kalibruj"
+
+            onClicked: backendCalibration.calibrate(10)
           }
 
           GroupBox {
@@ -243,18 +263,22 @@ ApplicationWindow {
     Item {}
     Item {
       id: calibrationTab
-      StackLayout {
-        currentIndex: backendCalibration.arrowIndex
-        Item {}
-        Image {
-          x: calibrationTab.x + (calibrationTab.width / 2) - (width / 2)
-          y: calibrationTab.y + (calibrationTab.height / 2) - (height / 2)
-          source: "gfx/arrow_left.png"
-        }
-        Image {
-          x: calibrationTab.x + (calibrationTab.width / 2) - (width / 2)
-          y: calibrationTab.y + (calibrationTab.height / 2) - (height / 2)
-          source: "gfx/arrow_left.png"
+      Item {
+        id: arrow
+        StackLayout {
+          id: calibrationLayout
+          currentIndex: backendCalibration.arrowIndex
+          Item {}
+          Image {
+            x: calibrationTab.x + (calibrationTab.width / 2) - (width / 2)
+            y: calibrationTab.y + (calibrationTab.height / 2) - (height / 2)
+            source: "gfx/arrow_left.png"
+          }
+          Image {
+            x: calibrationTab.x + (calibrationTab.width / 2) - (width / 2)
+            y: calibrationTab.y + (calibrationTab.height / 2) - (height / 2)
+            source: "gfx/arrow_right.png"
+          }
         }
       }
     }
