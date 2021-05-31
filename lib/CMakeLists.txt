@@ -11,5 +11,11 @@ set(THL_SRC
         stream.cpp stream.hpp
         streamreader.cpp streamreader.hpp)
 
+set(THL_INCLUDE_DIRS "ext/include")
+set(THL_LINK_DIRS "ext/lib")
+
+include_directories(${THL_INCLUDE_DIRS})
+link_directories(${THL_LINK_DIRS})
+
 add_library(thesis_lib ${THL_SRC})
-target_link_libraries(thesis_lib fftw3 m)
+target_link_libraries(thesis_lib m lsl)

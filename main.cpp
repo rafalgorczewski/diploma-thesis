@@ -1,20 +1,27 @@
-#include <lsl_cpp.h>
+#include <QGuiApplication>
+#include <QQmlApplicationEngine>
 
-#include <QApplication>
-#include <QPushButton>
-#include <iostream>
-#include <vector>
+#include "calibrationbackend.hpp"
 
-#include "buffer.hpp"
-#include "window.hpp"
+int main(int argc, char *argv[])
+{
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+#endif
 
-using namespace lsl;
+    QGuiApplication app(argc, argv);
 
-int main(int argc, char* argv[]) {
-  QApplication a(argc, argv);
+    QQmlApplicationEngine engine;
 
-  th::Window window;
-  window.show();
+    qmlRegisterType<CalibrationBackend>("Backend.Calibration",1,0,"Calibration");
 
-  return QApplication::exec();
+    const QUrl url(QStringLiteral("qrc:/main.qml"));
+    QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
+                     &app, [url](QObject *obj, const QUrl &objUrl) {
+        if (!obj && url == objUrl)
+            QCoreApplication::exit(-1);
+    }, Qt::QueuedConnection);
+    engine.load(url);
+
+    return app.exec();
 }
