@@ -17,16 +17,19 @@ CalibrationBackend::CalibrationBackend(QObject* parent) : QObject(parent) {
   m_cooldownTimer.setInterval(m_cooldownTime * 1000);
 
   connect(&m_preparationTimer, &QTimer::timeout, [this]{
+    emit preparationPhaseFinished();
     emit imageryPhaseStarted();
     m_imageryTimer.start();
   });
   connect(&m_imageryTimer, &QTimer::timeout, [this]{
     emit imageryPhaseFinished();
+    emit cooldownPhaseStarted();
     m_cooldownTimer.start();
   });
   connect(&m_cooldownTimer, &QTimer::timeout, [this]{
     ++m_currentRun;
-    emit runFinished(static_cast<int>(m_arrowIndex));
+    emit cooldownPhaseFinished();
+    emit runFinished(static_cast<int>(m_bodyPart));
 
     if (m_currentRun < m_runsMaxCount) {
       startRun();
@@ -37,7 +40,7 @@ CalibrationBackend::CalibrationBackend(QObject* parent) : QObject(parent) {
 }
 
 int CalibrationBackend::arrowIndex() const {
-  return static_cast<int>(m_arrowIndex);
+  return static_cast<int>(m_bodyPart);
 }
 
 void CalibrationBackend::calibrate(int runsMaxCount) {
@@ -46,8 +49,9 @@ void CalibrationBackend::calibrate(int runsMaxCount) {
 }
 
 void CalibrationBackend::startRun() {
+  m_bodyPart = th::BodyPart(QRandomGenerator::global()->bounded(1, 3));
   emit calibrationStarted();
-  m_arrowIndex = ArrowIndex(QRandomGenerator::global()->bounded(1, 3));
   emit runStarted();
+  emit preparationPhaseStarted();
   m_preparationTimer.start();
 }

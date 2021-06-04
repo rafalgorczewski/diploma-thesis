@@ -5,6 +5,8 @@
 #include <QTimer>
 #include <qqml.h>
 
+#include "bodypart.hpp"
+
 class CalibrationBackend : public QObject
 {
   Q_OBJECT
@@ -31,19 +33,20 @@ signals:
 
   void calibrationStarted();
   void runStarted();
+  void preparationPhaseStarted();
+  void preparationPhaseFinished();
   void imageryPhaseStarted();
   void imageryPhaseFinished();
+  void cooldownPhaseStarted();
+  void cooldownPhaseFinished();
   void runFinished(int arrowIndex);
   void calibrationFinished();
-
-private:
-  enum class ArrowIndex { None, Left, Right };
 
 private:
   void startRun();
 
 private:
-  ArrowIndex m_arrowIndex = ArrowIndex::None;
+  th::BodyPart m_bodyPart = th::BodyPart::None;
 
   QTimer m_preparationTimer;
   QTimer m_imageryTimer;

@@ -2,6 +2,7 @@
 #include <QQmlApplicationEngine>
 
 #include "calibrationbackend.hpp"
+#include "recorderbackend.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -14,6 +15,7 @@ int main(int argc, char *argv[])
     QQmlApplicationEngine engine;
 
     qmlRegisterType<CalibrationBackend>("Backend.Calibration",1,0,"Calibration");
+    qmlRegisterType<RecorderBackend>("Backend.Recorder",1,0,"Recorder");
 
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,

@@ -5,6 +5,7 @@
 #include <iterator>
 #include <numeric>
 #include <vector>
+#include <cmath>
 
 namespace th {
 
@@ -28,11 +29,13 @@ namespace th {
       const auto lower_magnitude = magnitudes.cbegin() + lower_index;
       const auto upper_magnitude = magnitudes.cbegin() + upper_index;
 
-      const auto sum = std::accumulate(lower_magnitude, upper_magnitude, 0.0);
+      const auto sum = std::accumulate(lower_magnitude, upper_magnitude, 0.0, [](double lhs, double rhs) {
+        return lhs + (rhs * rhs);
+      });
       const auto num = upper_index - lower_index;
 
       const auto mean = sum / (num > 0 ? num : 1);
-      return mean;
+      return std::sqrt(mean);
     }
   };
 

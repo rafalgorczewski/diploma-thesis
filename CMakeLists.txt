@@ -27,9 +27,8 @@ link_directories(${TH_LINK_DIRS})
 set(PROJECT_SOURCES
         main.cpp
         qml.qrc
-
-        calibrationbackend.hpp calibrationbackend.cpp
-)
+        recorderbackend.hpp recorderbackend.cpp
+        calibrationbackend.hpp calibrationbackend.cpp)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(thesis

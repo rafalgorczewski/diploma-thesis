@@ -32,4 +32,9 @@ namespace th {
     return m_stream.discrete_fourier_transform(channel_number);
   }
 
+  void StreamReader::clear()
+  {
+    m_stream = Stream(static_cast<std::size_t>(m_stream_info.channel_count()));
+  }
+
 }  // namespace th

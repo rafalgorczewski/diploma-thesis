@@ -5,6 +5,7 @@ import QtQuick.Controls
 import QtQuick.Controls.Material
 
 import Backend.Calibration
+import Backend.Recorder
 
 ApplicationWindow {
   id: root
@@ -21,22 +22,44 @@ ApplicationWindow {
 
   Calibration {
     id: backendCalibration
+    preparationTime: 2
+    imageryTime: 7
+    cooldownTime: 2
 
     onCalibrationStarted: {
       calibrateButton.enabled = false
     }
     onRunStarted: {
       calibrationLayout.currentIndex = arrowIndex
+    }
+    onPreparationPhaseStarted: {
       arrow.opacity = 0.25
+      backendRecorder.record(preparationTime, arrowIndex)
     }
     onImageryPhaseStarted: {
       arrow.opacity = 1.0
+      backendRecorder.record(imageryTime, arrowIndex)
     }
-    onImageryPhaseFinished: {
+    onCooldownPhaseStarted: {
       arrow.opacity = 0.05
+      backendRecorder.record(cooldownTime, arrowIndex)
     }
     onCalibrationFinished: {
       calibrateButton.enabled = true
+    }
+  }
+
+  Recorder {
+    id: backendRecorder
+
+    lslChannel: lslChannelField.text
+    channelsModel: electrodesModel
+
+    onChannelPowerChanged: {
+      var element = electrodesModel.find(function (item) {
+        return item.channel === channel
+      })
+      element.alpha = power
     }
   }
 
@@ -103,7 +126,7 @@ ApplicationWindow {
   Rectangle {
     id: panelRect
 
-    width: rootColumn.width + (rootColumn.x * 2)
+    width: rootCalibrationColumn.width + (rootCalibrationColumn.x * 2)
     anchors.top: toolbar.bottom
     anchors.bottom: parent.bottom
 
@@ -112,18 +135,72 @@ ApplicationWindow {
     StackLayout {
       currentIndex: tabBar.currentIndex
 
-      Item {}
+      Item {
+        ColumnLayout {
+          x: 32
+          y: 64
+          spacing: 16
+
+          GroupBox {
+            id: addElectrodeBox
+            width: 512
+
+            title: "Nowa elektroda"
+
+            ColumnLayout {
+
+              Row {
+                spacing: 10
+
+                Label {
+                  text: "Kanał:"
+                }
+
+                SpinBox {
+                  id: newElectrodeChannel
+                  from: 0
+                  to: 40
+
+                  value: 0
+                }
+
+                Label {
+                  text: "Nazwa:"
+                }
+
+                TextField {
+                  id: newElectrodeName
+                  text: "Nienazwana"
+                }
+              }
+              Button {
+                text: "Dodaj"
+                Layout.fillWidth: true
+
+                onClicked: {
+                  var newElectrode = {
+                    "channel": newElectrodeChannel.value,
+                    "name": newElectrodeName.text,
+                    "alpha": 0.0
+                  }
+                  electrodesModel.append(newElectrode)
+                }
+              }
+            }
+          }
+        }
+      }
 
       Item {
         ColumnLayout {
-          id: rootColumn
+          id: rootCalibrationColumn
 
           x: 32
           y: 64
           spacing: 16
 
           GroupBox {
-            id: rootBox
+            id: lslBox
             width: 512
 
             title: "LSL"
@@ -135,6 +212,8 @@ ApplicationWindow {
                 id: lslConnectButton
 
                 text: "Podłącz LSL"
+
+                onClicked: backendRecorder.resolveStream()
               }
 
               TextField {
@@ -257,10 +336,45 @@ ApplicationWindow {
   }
 
   StackLayout {
-    anchors.fill: tabBar
+    width: tabBar.width
+    height: tabBar.height - tabBar.contentHeight
+    anchors.bottom: tabBar.bottom
+    anchors.right: tabBar.right
     currentIndex: tabBar.currentIndex
 
-    Item {}
+    Item {
+      id: electrodesTab
+      GridView {
+        id: electrodesView
+        cellHeight: 128
+        cellWidth: 128
+        anchors.fill: parent
+        model: electrodesModel
+        delegate: Rectangle {
+          width: electrodesView.cellWidth
+          height: electrodesView.cellHeight
+
+          Text {
+            text: channel + " | " + name
+            anchors.centerIn: parent
+            Text {
+              text: "Alfa: " + alpha
+              anchors.top: parent.bottom
+            }
+          }
+        }
+      }
+
+      ListModel {
+        id: electrodesModel
+        function find(criteria) {
+          for (var i = 0; i < electrodesModel.count; ++i)
+            if (criteria(electrodesModel.get(i)))
+              return electrodesModel.get(i)
+          return null
+        }
+      }
+    }
     Item {
       id: calibrationTab
       Item {
