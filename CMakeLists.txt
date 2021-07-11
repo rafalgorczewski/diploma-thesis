@@ -18,7 +18,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Quick REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Quick REQUIRED)
 
-set(TH_INCLUDE_DIRS "lib" "lib/ext/include")
+FetchContent_Declare(minidnn
+    GIT_REPOSITORY https://github.com/yixuan/MiniDNN.git
+)
+FetchContent_MakeAvailable(minidnn)
+
+FetchContent_Declare(json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+)
+FetchContent_MakeAvailable(json)
+
+set(TH_INCLUDE_DIRS "lib" "lib/ext/include" ${minidnn_SOURCE_DIR}/include ${json_SOURCE_DIR}/include)
 set(TH_LINK_DIRS "lib" "lib/ext/lib")
 
 include_directories(${TH_INCLUDE_DIRS})
@@ -28,7 +38,8 @@ set(PROJECT_SOURCES
         main.cpp
         qml.qrc
         recorderbackend.hpp recorderbackend.cpp
-        calibrationbackend.hpp calibrationbackend.cpp)
+        calibrationbackend.hpp calibrationbackend.cpp
+        configurator.hpp configurator.cpp)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(thesis

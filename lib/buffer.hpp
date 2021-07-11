@@ -5,25 +5,24 @@
 #include <cstddef>
 #include <vector>
 
-#include "sample.hpp"
 #include "spectrum.hpp"
 
 namespace th {
 
   class Buffer {
    public:
-    using buffer_t = std::vector<sample_t>;
+    using buffer_t = std::vector<double>;
 
    public:
-    void add_sample(sample_t sample);
-    sample_t sample(std::size_t index) const;
-    sample_t operator[](std::size_t index) const;
+    void add_sample(double sample);
+    double sample(std::size_t index) const;
+    double operator[](std::size_t index) const;
 
     buffer_t& data() &;
     const buffer_t& data() const&;
     const buffer_t& data() const&& = delete;
 
-    Spectrum discrete_fourier_transform();
+    Spectrum discrete_fourier_transform(double sampling_frequency);
 
     buffer_t::iterator begin();
     buffer_t::iterator end();

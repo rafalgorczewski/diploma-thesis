@@ -29,7 +29,7 @@ CalibrationBackend::CalibrationBackend(QObject* parent) : QObject(parent) {
   connect(&m_cooldownTimer, &QTimer::timeout, [this]{
     ++m_currentRun;
     emit cooldownPhaseFinished();
-    emit runFinished(static_cast<int>(m_bodyPart));
+    emit runFinished();
 
     if (m_currentRun < m_runsMaxCount) {
       startRun();

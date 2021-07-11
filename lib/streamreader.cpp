@@ -29,7 +29,7 @@ namespace th {
   }
 
   Spectrum StreamReader::spectrum(std::size_t channel_number) {
-    return m_stream.discrete_fourier_transform(channel_number);
+    return m_stream.discrete_fourier_transform(channel_number, m_stream_info.nominal_srate());
   }
 
   void StreamReader::clear()

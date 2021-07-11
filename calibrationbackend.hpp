@@ -39,7 +39,7 @@ signals:
   void imageryPhaseFinished();
   void cooldownPhaseStarted();
   void cooldownPhaseFinished();
-  void runFinished(int arrowIndex);
+  void runFinished();
   void calibrationFinished();
 
 private:

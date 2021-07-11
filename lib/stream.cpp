@@ -27,8 +27,8 @@ namespace th {
     return m_channels[channel_number];
   }
 
-  Spectrum Stream::discrete_fourier_transform(std::size_t channel_number) {
-    return m_channels[channel_number].discrete_fourier_transform();
+  Spectrum Stream::discrete_fourier_transform(std::size_t channel_number, double sampling_frequency) {
+    return m_channels[channel_number].discrete_fourier_transform(sampling_frequency);
   }
 
 }  // namespace th

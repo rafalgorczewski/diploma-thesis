@@ -3,6 +3,7 @@
 
 #include "calibrationbackend.hpp"
 #include "recorderbackend.hpp"
+#include "configurator.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -16,6 +17,7 @@ int main(int argc, char *argv[])
 
     qmlRegisterType<CalibrationBackend>("Backend.Calibration",1,0,"Calibration");
     qmlRegisterType<RecorderBackend>("Backend.Recorder",1,0,"Recorder");
+    qmlRegisterType<Configurator>("Backend.Configurator",1,0,"Configurator");
 
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,

@@ -8,15 +8,15 @@
 
 namespace th {
 
-  void Buffer::add_sample(sample_t sample) {
+  void Buffer::add_sample(double sample) {
     m_samples.push_back(sample);
   }
 
-  sample_t Buffer::sample(std::size_t index) const {
+  double Buffer::sample(std::size_t index) const {
     return m_samples[index];
   }
 
-  sample_t Buffer::operator[](std::size_t index) const {
+  double Buffer::operator[](std::size_t index) const {
     return m_samples[index];
   }
 
@@ -28,7 +28,7 @@ namespace th {
     return m_samples;
   }
 
-  Spectrum Buffer::discrete_fourier_transform() {
+  Spectrum Buffer::discrete_fourier_transform(double sampling_frequency) {
     const std::size_t samples_count = m_samples.size();
     const std::size_t samples_count_half = samples_count / 2;
 
@@ -43,7 +43,7 @@ namespace th {
     Spectrum result{ std::vector<double>(samples_count_half),
                      std::vector<double>(samples_count_half) };
     for (std::size_t n = 0; n < samples_count_half; ++n) {
-      result.frequencies[n] = (n * SAMPLING_FREQUENCY) / samples_count;
+      result.frequencies[n] = (n * sampling_frequency) / samples_count;
       result.magnitudes[n] =
         std::abs(std::complex<double>(out[n][0], out[n][1]));
     }

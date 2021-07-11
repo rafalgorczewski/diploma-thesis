@@ -6,6 +6,7 @@ import QtQuick.Controls.Material
 
 import Backend.Calibration
 import Backend.Recorder
+import Backend.Configurator
 
 ApplicationWindow {
   id: root
@@ -20,32 +21,72 @@ ApplicationWindow {
 
   font.pointSize: 16
 
+  function calibrationArrowDisable() {
+    calibrationArrowLeft.opacity = 0
+    calibrationArrowRight.opacity = 0
+  }
+
+  function calibrationSelectArrow(index) {
+    if (index === 1) {
+      calibrationArrowLeft.opacity = 1
+    } else if (index === 2) {
+      calibrationArrowRight.opacity = 1
+    }
+  }
+
+  function addNewChannel(channel, name) {
+    var element = electrodesModel.find(function (item) {
+      return item.channel === channel
+    })
+    if (element === null) {
+      var newElectrode = {
+        "channel": channel,
+        "name": name
+      }
+      electrodesModel.append(newElectrode)
+    }
+  }
+
+  function addNewBand(min, max) {
+    var element = bandsModel.find(function (item) {
+      return item.bandBegin === min && item.bandEnd === max
+    })
+    if (element === null && max >= min) {
+      var newBand = {
+        "bandBegin": min,
+        "bandEnd": max
+      }
+      bandsModel.append(newBand)
+    }
+  }
+
   Calibration {
     id: backendCalibration
-    preparationTime: 2
-    imageryTime: 7
-    cooldownTime: 2
+    preparationTime: preparationTimeSpinBox.value
+    imageryTime: imageryTimeSpinBox.value
+    cooldownTime: cooldownTimeSpinBox.value
 
     onCalibrationStarted: {
       calibrateButton.enabled = false
+      classifyButton.enabled = false
     }
     onRunStarted: {
-      calibrationLayout.currentIndex = arrowIndex
+      calibrationArrowDisable()
     }
     onPreparationPhaseStarted: {
-      arrow.opacity = 0.25
-      backendRecorder.record(preparationTime, arrowIndex)
+      backendRecorder.calibrateRecord(preparationTime, 0)
     }
     onImageryPhaseStarted: {
-      arrow.opacity = 1.0
-      backendRecorder.record(imageryTime, arrowIndex)
+      calibrationSelectArrow(arrowIndex)
+      backendRecorder.calibrateRecord(imageryTime, arrowIndex)
     }
     onCooldownPhaseStarted: {
-      arrow.opacity = 0.05
-      backendRecorder.record(cooldownTime, arrowIndex)
+      calibrationArrowDisable()
+      backendRecorder.calibrateRecord(cooldownTime, 0)
     }
     onCalibrationFinished: {
       calibrateButton.enabled = true
+      classifyButton.enabled = true
     }
   }
 
@@ -54,12 +95,51 @@ ApplicationWindow {
 
     lslChannel: lslChannelField.text
     channelsModel: electrodesModel
+    bandsModel: bandsModel
 
     onChannelPowerChanged: {
       var element = electrodesModel.find(function (item) {
         return item.channel === channel
       })
       element.alpha = power
+    }
+
+    onCurrentBodyPartChanged: {
+      classificationLayout.currentIndex = bodyPart
+    }
+  }
+
+  Configurator {
+    id: configurator
+
+    channelsModel: electrodesModel
+    runsCount: runsSpinBox.value
+    preparationTime: preparationTimeSpinBox.value
+    imageryTime: imageryTimeSpinBox.value
+    cooldownTime: cooldownTimeSpinBox.value
+    bandsModel: bandsModel
+
+    onNewChannelLoaded: addNewChannel(number, name)
+    onNewBandLoaded: addNewBand(min, max)
+  }
+
+  ListModel {
+    id: bandsModel
+    function find(criteria) {
+      for (var i = 0; i < bandsModel.count; ++i)
+        if (criteria(bandsModel.get(i)))
+          return bandsModel.get(i)
+      return null
+    }
+  }
+
+  ListModel {
+    id: electrodesModel
+    function find(criteria) {
+      for (var i = 0; i < electrodesModel.count; ++i)
+        if (criteria(electrodesModel.get(i)))
+          return electrodesModel.get(i)
+      return null
     }
   }
 
@@ -126,192 +206,224 @@ ApplicationWindow {
   Rectangle {
     id: panelRect
 
-    width: rootCalibrationColumn.width + (rootCalibrationColumn.x * 2)
+    width: 512 + (panelColumn.x * 2)
     anchors.top: toolbar.bottom
     anchors.bottom: parent.bottom
 
     color: "black"
 
-    StackLayout {
-      currentIndex: tabBar.currentIndex
+    ColumnLayout {
+      id: panelColumn
 
-      Item {
-        ColumnLayout {
-          x: 32
-          y: 64
-          spacing: 16
+      x: 32
+      y: 32
+      spacing: 16
 
-          GroupBox {
-            id: addElectrodeBox
-            width: 512
+      RowLayout {
+        Button {
+          text: "Zapisz konfigurację"
+          onClicked: configurator.saveConfiguration("")
+        }
+        Button {
+          text: "Wczytaj konfigurację"
+          onClicked: {
+            configurator.loadConfiguration("")
 
-            title: "Nowa elektroda"
-
-            ColumnLayout {
-
-              Row {
-                spacing: 10
-
-                Label {
-                  text: "Kanał:"
-                }
-
-                SpinBox {
-                  id: newElectrodeChannel
-                  from: 0
-                  to: 40
-
-                  value: 0
-                }
-
-                Label {
-                  text: "Nazwa:"
-                }
-
-                TextField {
-                  id: newElectrodeName
-                  text: "Nienazwana"
-                }
-              }
-              Button {
-                text: "Dodaj"
-                Layout.fillWidth: true
-
-                onClicked: {
-                  var newElectrode = {
-                    "channel": newElectrodeChannel.value,
-                    "name": newElectrodeName.text,
-                    "alpha": 0.0
-                  }
-                  electrodesModel.append(newElectrode)
-                }
-              }
-            }
+            runsSpinBox.value = configurator.runsCount
+            preparationTimeSpinBox.value = configurator.preparationTime
+            imageryTimeSpinBox.value = configurator.imageryTime
+            cooldownTimeSpinBox.value = configurator.cooldownTime
           }
         }
       }
 
-      Item {
+      GroupBox {
+        id: addElectrodeBox
+        Layout.fillWidth: true
+
+        title: "Nowa elektroda"
+
         ColumnLayout {
-          id: rootCalibrationColumn
 
-          x: 32
-          y: 64
-          spacing: 16
+          Row {
+            spacing: 10
 
-          GroupBox {
-            id: lslBox
-            width: 512
-
-            title: "LSL"
-
-            Row {
-              spacing: 10
-
-              Button {
-                id: lslConnectButton
-
-                text: "Podłącz LSL"
-
-                onClicked: backendRecorder.resolveStream()
-              }
-
-              TextField {
-                id: lslChannelField
-                width: 350
-
-                text: "MyAudioStream"
-              }
+            Label {
+              text: "Kanał:"
             }
+
+            SpinBox {
+              id: newElectrodeChannel
+              from: 0
+              to: 40
+
+              value: 0
+            }
+
+            Label {
+              text: "Nazwa:"
+            }
+
+            TextField {
+              id: newElectrodeName
+              text: "Nienazwana"
+            }
+          }
+          Button {
+            text: "Dodaj"
+            Layout.fillWidth: true
+
+            onClicked: addNewChannel(newElectrodeChannel.value,
+                                     newElectrodeName.text)
+          }
+        }
+      }
+      GroupBox {
+        id: lslBox
+        Layout.fillWidth: true
+
+        title: "LSL"
+
+        Row {
+          spacing: 10
+
+          Button {
+            id: lslConnectButton
+
+            text: "Podłącz LSL"
+
+            onClicked: {
+              backendRecorder.resolveStream()
+              enabled = false
+            }
+          }
+
+          TextField {
+            id: lslChannelField
+            width: 350
+
+            text: "MyAudioStream"
+          }
+        }
+      }
+      GroupBox {
+        id: calibrationBox
+        Layout.fillWidth: true
+
+        title: "Kalibracja"
+
+        Row {
+          spacing: 10
+          Label {
+            text: "Przebiegi:"
+          }
+          SpinBox {
+            id: runsSpinBox
+            from: 1
+            to: 100
+
+            value: 1
           }
 
           Button {
             id: calibrateButton
             Layout.fillWidth: true
+            enabled: !lslConnectButton.enabled
 
             text: "Kalibruj"
 
-            onClicked: backendCalibration.calibrate(10)
+            onClicked: backendCalibration.calibrate(runsSpinBox.value)
           }
+        }
+      }
+      Button {
+        id: classifyButton
 
-          GroupBox {
-            Layout.fillWidth: true
-            label: CheckBox {
-              id: alphaCheckBox
-              checked: true
-              text: "Alfa (mu) [Hz]"
+        enabled: !lslConnectButton.enabled
+        Layout.fillWidth: true
+        text: "Nagrywaj"
+
+        onClicked: backendRecorder.classifyRecord()
+      }
+      GroupBox {
+        Layout.fillWidth: true
+
+        title: "Czasy trwania sekcji [s]"
+        Row {
+
+          SpinBox {
+            id: preparationTimeSpinBox
+            width: 160
+
+            from: 1
+            to: 20
+
+            value: 2
+          }
+          SpinBox {
+            id: imageryTimeSpinBox
+            width: 160
+
+            from: 1
+            to: 20
+
+            value: 7
+          }
+          SpinBox {
+            id: cooldownTimeSpinBox
+            width: 160
+
+            from: 1
+            to: 20
+
+            value: 2
+          }
+        }
+      }
+      GroupBox {
+        Layout.fillWidth: true
+
+        title: "Pasma [Hz]"
+
+        Column {
+          Row {
+            Button {
+              text: "Dodaj"
+              onClicked: addNewBand(bandBeginSpinBox.value,
+                                    bandEndSpinBox.value)
             }
+            SpinBox {
+              id: bandBeginSpinBox
 
-            RowLayout {
-              Label {
-                text: "Min"
-              }
-              SpinBox {
-                from: 7
-                to: 9
+              from: 1
+              to: 50
+              value: 8
+            }
+            SpinBox {
+              id: bandEndSpinBox
 
-                value: 8
-              }
-
-              Label {
-                text: "Max"
-              }
-              SpinBox {
-                from: 10
-                to: 13
-
-                value: 12
-              }
+              from: 1
+              to: 50
+              value: 12
             }
           }
+          ListView {
+            id: bandsView
 
-          GroupBox {
-            Layout.fillWidth: true
-            label: CheckBox {
-              id: betaCheckBox
-              checked: true
-              text: "Beta [Hz]"
-            }
+            anchors.left: parent.left
+            anchors.right: parent.right
+            height: 200
 
-            RowLayout {
-              Label {
-                text: "Min"
-              }
-              SpinBox {
-                from: 12
-                to: 15
+            model: bandsModel
+            delegate: Rectangle {
+              color: "white"
+              width: bandsView.width
+              height: 32
+              Text {
+                text: bandBegin + " - " + bandEnd
+                anchors.centerIn: parent
 
-                value: 13
-              }
-
-              Label {
-                text: "Max"
-              }
-              SpinBox {
-                from: 26
-                to: 30
-
-                value: 28
-              }
-            }
-          }
-
-          GroupBox {
-            Layout.fillWidth: true
-            label: CheckBox {
-              id: bandCheckBox
-              checked: false
-              text: "Podpasma [Hz]"
-            }
-
-            RowLayout {
-              Label {
-                text: "Szerokość"
-              }
-
-              SpinBox {
-                from: 1
-                to: 3
+                font.pixelSize: 30
               }
             }
           }
@@ -332,6 +444,9 @@ ApplicationWindow {
     }
     TabButton {
       text: "Kalibracja"
+    }
+    TabButton {
+      text: "Klasyfikacja"
     }
   }
 
@@ -357,40 +472,53 @@ ApplicationWindow {
           Text {
             text: channel + " | " + name
             anchors.centerIn: parent
-            Text {
-              text: "Alfa: " + alpha
-              anchors.top: parent.bottom
-            }
           }
-        }
-      }
-
-      ListModel {
-        id: electrodesModel
-        function find(criteria) {
-          for (var i = 0; i < electrodesModel.count; ++i)
-            if (criteria(electrodesModel.get(i)))
-              return electrodesModel.get(i)
-          return null
         }
       }
     }
     Item {
       id: calibrationTab
+      Image {
+        id: calibrationArrowLeft
+        anchors.left: parent.left
+
+        x: calibrationTab.x + (calibrationTab.width / 2) - (width / 2)
+        y: calibrationTab.y + (calibrationTab.height / 2) - (height / 2)
+        source: "gfx/arrow_left.png"
+      }
+
+      Label {
+        anchors.centerIn: parent
+
+        text: "✕"
+        font.pointSize: 40
+      }
+
+      Image {
+        id: calibrationArrowRight
+        anchors.right: parent.right
+
+        x: calibrationTab.x + (calibrationTab.width / 2) - (width / 2)
+        y: calibrationTab.y + (calibrationTab.height / 2) - (height / 2)
+        source: "gfx/arrow_right.png"
+      }
+    }
+    Item {
+      id: classificationTab
       Item {
-        id: arrow
+        id: classificationArrow
         StackLayout {
-          id: calibrationLayout
-          currentIndex: backendCalibration.arrowIndex
+          id: classificationLayout
+          currentIndex: backendRecorder.currentBodyPart
           Item {}
           Image {
-            x: calibrationTab.x + (calibrationTab.width / 2) - (width / 2)
-            y: calibrationTab.y + (calibrationTab.height / 2) - (height / 2)
+            x: classificationTab.x + (classificationTab.width / 2) - (width / 2)
+            y: classificationTab.y + (classificationTab.height / 2) - (height / 2)
             source: "gfx/arrow_left.png"
           }
           Image {
-            x: calibrationTab.x + (calibrationTab.width / 2) - (width / 2)
-            y: calibrationTab.y + (calibrationTab.height / 2) - (height / 2)
+            x: classificationTab.x + (classificationTab.width / 2) - (width / 2)
+            y: classificationTab.y + (classificationTab.height / 2) - (height / 2)
             source: "gfx/arrow_right.png"
           }
         }

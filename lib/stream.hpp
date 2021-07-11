@@ -21,7 +21,7 @@ namespace th {
     const Buffer& channel(std::size_t channel_number) const&;
     const Buffer& channel(std::size_t channel_number) const&& = delete;
 
-    Spectrum discrete_fourier_transform(std::size_t channel_number);
+    Spectrum discrete_fourier_transform(std::size_t channel_number, double sampling_frequency);
 
    private:
     std::vector<Buffer> m_channels;
