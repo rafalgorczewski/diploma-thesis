@@ -1,6 +1,7 @@
 #include "calibrationbackend.hpp"
 
-#include "QRandomGenerator"
+#include <algorithm>
+#include <random>
 
 CalibrationBackend::CalibrationBackend() : CalibrationBackend(nullptr)
 {
@@ -45,13 +46,29 @@ int CalibrationBackend::arrowIndex() const {
 
 void CalibrationBackend::calibrate(int runsMaxCount) {
   m_runsMaxCount = runsMaxCount;
+  fillPartsQueue();
+
+  emit calibrationStarted();
   startRun();
 }
 
 void CalibrationBackend::startRun() {
-  m_bodyPart = th::BodyPart(QRandomGenerator::global()->bounded(1, 3));
-  emit calibrationStarted();
+  m_bodyPart = m_partsQueue.front();
+  m_partsQueue.pop_front();
+
   emit runStarted();
   emit preparationPhaseStarted();
   m_preparationTimer.start();
+}
+
+void CalibrationBackend::fillPartsQueue()
+{
+  m_partsQueue = {};
+  for (int i = 0; i < m_runsMaxCount; ++i) {
+    m_partsQueue.push_back(th::BodyPart((i % 2) + 1));
+  }
+
+  std::random_device rd;
+  std::mt19937 g(rd());
+  std::shuffle(m_partsQueue.begin(), m_partsQueue.end(), g);
 }

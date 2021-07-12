@@ -1,6 +1,8 @@
 #ifndef CALIBRATIONBACKEND_HPP
 #define CALIBRATIONBACKEND_HPP
 
+#include <deque>
+
 #include <QObject>
 #include <QTimer>
 #include <qqml.h>
@@ -44,6 +46,7 @@ signals:
 
 private:
   void startRun();
+  void fillPartsQueue();
 
 private:
   th::BodyPart m_bodyPart = th::BodyPart::None;
@@ -58,6 +61,8 @@ private:
 
   int m_runsMaxCount = 0;
   int m_currentRun = 0;
+
+  std::deque<th::BodyPart> m_partsQueue;
 };
 
 #endif // CALIBRATIONBACKEND_HPP

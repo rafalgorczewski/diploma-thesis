@@ -1,5 +1,10 @@
 #include "classifier.hpp"
 
+#include <fstream>
+#include <ctime>
+#include <string>
+#include <iostream>
+
 namespace th {
 
 Classifier::Classifier(int input_size) : m_input_size(input_size), m_opt(0.001) {
@@ -32,10 +37,25 @@ void Classifier::train()
     x.col(col) = m_data[col];
   }
   for (int label = 0; label < m_labels.size(); ++label) {
-    y(1, label) = static_cast<double>(m_labels[label]);
+    y(label) = static_cast<double>(m_labels[label]);
   }
 
   m_network.fit(m_opt, x, y, 100, 10);
+}
+
+void Classifier::save_data()
+{
+  const auto now = std::time(0);
+  const std::string dt = std::to_string(now);
+
+  std::ofstream output("cal_" + dt + ".csv");
+  for (int i = 0; i < m_labels.size(); ++i) {
+    output << static_cast<int>(m_labels[i]);
+    for (int j = 0; j < m_data[i].size(); ++j) {
+      output << "," << m_data[i](j);
+    }
+    output << std::endl;
+  }
 }
 
 }

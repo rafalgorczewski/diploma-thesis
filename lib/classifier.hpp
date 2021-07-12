@@ -19,6 +19,8 @@ public:
   void feed_data(BodyPart body_part, const eig::VectorXd& input);
   void train();
 
+  void save_data();
+
 private:
   int m_input_size;
 

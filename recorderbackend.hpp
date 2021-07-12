@@ -33,7 +33,9 @@ public:
   Q_INVOKABLE void calibrateRecord(int seconds, int bodyPart);
   Q_INVOKABLE void classifyRecord();
 
+  Q_INVOKABLE void createClassifier();
   Q_INVOKABLE void trainClassifier();
+  Q_INVOKABLE void saveClassifierData();
 
 signals:
   void lslChannelChanged(QString);

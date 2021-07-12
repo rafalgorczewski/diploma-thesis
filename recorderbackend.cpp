@@ -37,11 +37,23 @@ void RecorderBackend::classifyRecord()
   m_futureWatcher.setFuture(future);
 }
 
+void RecorderBackend::createClassifier()
+{
+  std::vector<int> channels = getChannels();
+  std::vector<std::pair<int, int>> bands = getBands();
+  m_classifier = std::make_unique<th::Classifier>(channels.size() * bands.size());
+}
+
 void RecorderBackend::trainClassifier()
 {
   if (m_classifier) {
     m_classifier->train();
   }
+}
+
+void RecorderBackend::saveClassifierData()
+{
+  m_classifier->save_data();
 }
 
 void RecorderBackend::calibrateRecordAsync(int seconds, int bodyPart)
@@ -50,7 +62,6 @@ void RecorderBackend::calibrateRecordAsync(int seconds, int bodyPart)
 
   std::vector<int> channels = getChannels();
   std::vector<std::pair<int, int>> bands = getBands();
-  m_classifier = std::make_unique<th::Classifier>(channels.size() * bands.size());
 
   for (int second = 1; second <= seconds; ++second) {
     m_streamReader.read(1000ms);
@@ -58,7 +69,7 @@ void RecorderBackend::calibrateRecordAsync(int seconds, int bodyPart)
     eig::VectorXd input(channels.size() * bands.size());
     for (int i = 0; i < channels.size(); ++i) {
       for (int j = 0; j < bands.size(); ++j) {
-        const double power = m_streamReader.spectrum(channels[i]).band_power(bands[j].first, bands[i].second);
+        const double power = m_streamReader.spectrum(channels[i]).band_power(bands[j].first, bands[j].second);
         input((i * bands.size()) + j) = power;
       }
     }
@@ -81,12 +92,12 @@ void RecorderBackend::classifyRecordAsync()
     eig::VectorXd input(channels.size() * bands.size());
     for (int i = 0; i < channels.size(); ++i) {
       for (int j = 0; j < bands.size(); ++j) {
-        const double power = m_streamReader.spectrum(channels[i]).band_power(bands[j].first, bands[i].second);
+        const double power = m_streamReader.spectrum(channels[i]).band_power(bands[j].first, bands[j].second);
         input((i * bands.size()) + j) = power;
       }
     }
     m_currentBodyPart = static_cast<int>((*m_classifier)(input));
-    qDebug() << m_currentBodyPart;
+    emit currentBodyPartChanged(m_currentBodyPart);
 
     m_streamReader.clear();
   }
