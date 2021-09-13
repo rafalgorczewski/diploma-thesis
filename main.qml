@@ -80,6 +80,7 @@ ApplicationWindow {
       path = path.replace(/^(file:\/{3})/, "")
       var cleanPath = decodeURIComponent(path)
       backendRecorder.loadClassifierData(cleanPath)
+      classifyButton.enabled = true
     }
   }
 
@@ -423,16 +424,31 @@ ApplicationWindow {
             }
           }
         }
-        Button {
-          id: classifyButton
+        Row {
+          Button {
+            id: classifyButton
+            width: panelRect.width / 2.35
+            enabled: !lslConnectButton.enabled && !calibrateButton.enabled
+            text: "Rejestruj"
 
-          enabled: !lslConnectButton.enabled && !calibrateButton.enabled
-          Layout.fillWidth: true
-          text: "Rejestruj"
+            onClicked: {
+              enabled = false
+              stopButton.enabled = true
+              backendRecorder.classifyRecord()
+              tabBar.currentIndex = 2
+            }
+          }
+          Button {
+            id: stopButton
+            width: panelRect.width / 2.35
+            enabled: false
+            text: "Zatrzymaj"
 
-          onClicked: {
-            backendRecorder.classifyRecord()
-            tabBar.currentIndex = 2
+            onClicked: {
+              backendRecorder.stopRecording()
+              enabled = false
+              classifyButton.enabled = true
+            }
           }
         }
         GroupBox {

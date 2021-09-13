@@ -38,6 +38,8 @@ public:
   Q_INVOKABLE void saveClassifierData(QString configName);
   Q_INVOKABLE void loadClassifierData(QString file);
 
+  Q_INVOKABLE void stopRecording();
+
 signals:
   void lslChannelChanged(QString);
   void channelsModelChanged(QAbstractListModel*);
@@ -62,6 +64,7 @@ private:
   QFutureWatcher<void> m_futureWatcher;
 
   int m_currentBodyPart{};
+  bool m_stopRequested = false;
 };
 
 #endif // RECORDERBACKEND_HPP

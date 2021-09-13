@@ -59,6 +59,11 @@ void RecorderBackend::loadClassifierData(QString file)
   m_classifier.load_data(file.toStdString());
 }
 
+void RecorderBackend::stopRecording()
+{
+  m_stopRequested = true;
+}
+
 void RecorderBackend::calibrateRecordAsync(int seconds, int bodyPart)
 {
   using namespace std::chrono_literals;
@@ -89,7 +94,7 @@ void RecorderBackend::classifyRecordAsync()
   std::vector<int> channels = getChannels();
   std::vector<std::pair<int, int>> bands = getBands();
 
-  while (true) {
+  while (!m_stopRequested) {
     m_streamReader.read(1000ms);
 
     cv::Mat input{};
@@ -106,6 +111,7 @@ void RecorderBackend::classifyRecordAsync()
 
     m_streamReader.clear();
   }
+  m_stopRequested = false;
 }
 
 std::vector<int> RecorderBackend::getChannels() {
