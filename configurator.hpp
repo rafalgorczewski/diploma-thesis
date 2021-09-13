@@ -9,6 +9,7 @@
 class Configurator : public QObject
 {
   Q_OBJECT
+  Q_PROPERTY(QString fileName MEMBER m_fileName NOTIFY fileNameChanged)
   Q_PROPERTY(QAbstractListModel* channelsModel MEMBER m_channelsModel NOTIFY channelsModelChanged)
   Q_PROPERTY(int runsCount MEMBER m_runsCount NOTIFY runsCountChanged)
   Q_PROPERTY(int preparationTime MEMBER m_preparationTime NOTIFY preparationTimeChanged)
@@ -24,6 +25,7 @@ public:
   Q_INVOKABLE void loadConfiguration(QString name);
 
 signals:
+  void fileNameChanged();
   void channelsModelChanged();
   void runsCountChanged();
   void preparationTimeChanged();
@@ -35,6 +37,7 @@ signals:
   void newBandLoaded(int min, int max);
 
 private:
+  QString m_fileName;
   QAbstractListModel* m_channelsModel;
   int m_runsCount;
   int m_preparationTime;

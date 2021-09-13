@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <opencv2/opencv.hpp>
+#include <string>
 
 #include "bodypart.hpp"
 
@@ -10,25 +11,20 @@ namespace th {
 class Classifier
 {
 public:
-  Classifier(int feature_vector_size);
-
   int operator()(const cv::Mat& input);
 
   void feed_data(int body_part, const cv::Mat& input);
   void train();
 
-  void save_data();
+  void save_data(const std::string& config_name);
+  void load_data(const std::string& file);
 
 private:
-  static constexpr int CLASSES_COUNT = 3;
+  cv::LDA m_lda{};
+  cv::Mat m_projected{};
 
-  int m_feature_vector_size = 0;
-
-  cv::LDA m_lda;
-  cv::Mat m_projected;
-
-  cv::Mat m_data;
-  cv::Mat m_labels;
+  cv::Mat m_data{};
+  cv::Mat m_labels{};
 };
 }
 

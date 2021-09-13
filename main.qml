@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import QtQuick.Controls.Material
 
+import Qt.labs.platform
 import Backend.Calibration
 import Backend.Recorder
 import Backend.Configurator
@@ -69,6 +70,45 @@ ApplicationWindow {
     }
   }
 
+  FileDialog {
+    id: calibrationFileDialog
+    defaultSuffix: "csv"
+    fileMode: FileDialog.OpenFile
+    nameFilters: ["CSV (*.csv)"]
+    onAccepted: {
+      var path = file.toString()
+      path = path.replace(/^(file:\/{3})/, "")
+      var cleanPath = decodeURIComponent(path)
+      backendRecorder.loadClassifierData(cleanPath)
+    }
+  }
+
+  FileDialog {
+    id: configSaveFileDialog
+    defaultSuffix: "json"
+    fileMode: FileDialog.SaveFile
+    nameFilters: ["JSON (*.json)"]
+    onAccepted: {
+      var path = file.toString()
+      path = path.replace(/^(file:\/{3})/, "")
+      var cleanPath = decodeURIComponent(path)
+      configurator.saveConfiguration(cleanPath)
+    }
+  }
+
+  FileDialog {
+    id: configLoadFileDialog
+    defaultSuffix: "json"
+    fileMode: FileDialog.OpenFile
+    nameFilters: ["JSON (*.json)"]
+    onAccepted: {
+      var path = file.toString()
+      path = path.replace(/^(file:\/{3})/, "")
+      var cleanPath = decodeURIComponent(path)
+      configurator.loadConfiguration(cleanPath)
+    }
+  }
+
   Calibration {
     id: backendCalibration
     preparationTime: preparationTimeSpinBox.value
@@ -78,8 +118,6 @@ ApplicationWindow {
     onCalibrationStarted: {
       calibrateButton.enabled = false
       classifyButton.enabled = false
-
-      backendRecorder.createClassifier()
     }
     onRunStarted: {
       calibrationArrowDisable()
@@ -99,7 +137,10 @@ ApplicationWindow {
       calibrateButton.enabled = true
       classifyButton.enabled = true
 
-      backendRecorder.saveClassifierData()
+      var str = configurator.fileName
+      backendRecorder.saveClassifierData((String(str).slice(
+                                            String(str).lastIndexOf(
+                                              "/") + 1)).replace(".json", ""))
       backendRecorder.trainClassifier()
     }
   }
@@ -242,13 +283,13 @@ ApplicationWindow {
           Button {
             text: "Zapisz konfigurację"
             width: panelRect.width / 2.25
-            onClicked: configurator.saveConfiguration("")
+            onClicked: configSaveFileDialog.open()
           }
           Button {
             text: "Wczytaj konfigurację"
             width: panelRect.width / 2.25
             onClicked: {
-              configurator.loadConfiguration("")
+              configLoadFileDialog.open()
 
               runsSpinBox.value = configurator.runsCount
               preparationTimeSpinBox.value = configurator.preparationTime
@@ -356,8 +397,20 @@ ApplicationWindow {
             }
 
             Button {
+              id: loadCalibrationButton
+              width: panelRect.width / 6.5
+              enabled: !lslConnectButton.enabled
+
+              text: "Wczytaj"
+
+              onClicked: {
+                calibrationFileDialog.open()
+              }
+            }
+
+            Button {
               id: calibrateButton
-              width: panelRect.width / 3.25
+              width: panelRect.width / 6.5
               enabled: !lslConnectButton.enabled
 
               text: "Kalibruj"

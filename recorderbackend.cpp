@@ -40,25 +40,23 @@ void RecorderBackend::classifyRecord()
   m_futureWatcher.setFuture(future);
 }
 
-void RecorderBackend::createClassifier()
-{
-  std::vector<int> channels = getChannels();
-  std::vector<std::pair<int, int>> bands = getBands();
-  m_classifier = std::make_unique<th::Classifier>(channels.size() * bands.size());
-}
-
 void RecorderBackend::trainClassifier()
 {
   m_futureWatcher.waitForFinished();
-  if (m_classifier) {
-    m_classifier->train();
-  }
+  m_classifier.train();
 }
 
-void RecorderBackend::saveClassifierData()
+void RecorderBackend::saveClassifierData(QString configName)
 {
   m_futureWatcher.waitForFinished();
-  m_classifier->save_data();
+  m_classifier.save_data(configName.toStdString());
+}
+
+void RecorderBackend::loadClassifierData(QString file)
+{
+  m_futureWatcher.waitForFinished();
+  m_classifier = {};
+  m_classifier.load_data(file.toStdString());
 }
 
 void RecorderBackend::calibrateRecordAsync(int seconds, int bodyPart)
@@ -78,7 +76,7 @@ void RecorderBackend::calibrateRecordAsync(int seconds, int bodyPart)
         input.push_back(power);
       }
     }
-    m_classifier->feed_data(bodyPart, input.t());
+    m_classifier.feed_data(bodyPart, input.t());
 
     m_streamReader.clear();
   }
@@ -102,7 +100,7 @@ void RecorderBackend::classifyRecordAsync()
       }
     }
     qDebug() << "Klasyfikacja...";
-    m_currentBodyPart = (*m_classifier)(input.t());
+    m_currentBodyPart = m_classifier(input.t());
     qDebug() << "Wynik: " << m_currentBodyPart;
     emit currentBodyPartChanged(m_currentBodyPart);
 

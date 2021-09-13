@@ -37,14 +37,16 @@ void Configurator::saveConfiguration(QString name)
     configuration["bands"][i] = { min, max };
   }
 
-  std::ofstream output("configuration.json");
+  std::ofstream output(name.toStdString());
   output << configuration;
+
+  m_fileName = name;
 }
 
 void Configurator::loadConfiguration(QString name)
 {
   nlohmann::json configuration;
-  std::ifstream input("configuration.json");
+  std::ifstream input(name.toStdString());
   input >> configuration;
 
   auto channelsObject = configuration["channels"];
@@ -67,4 +69,6 @@ void Configurator::loadConfiguration(QString name)
 
     emit newBandLoaded(min, max);
   }
+
+  m_fileName = name;
 }

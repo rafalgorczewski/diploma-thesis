@@ -7,13 +7,9 @@
 #include <utility>
 #include <cstddef>
 #include <limits>
+#include <sstream>
 
 namespace th {
-
-Classifier::Classifier(int feature_vector_size) : m_feature_vector_size(feature_vector_size)
-{
-
-}
 
 int Classifier::operator()(const cv::Mat& input)
 {
@@ -35,12 +31,6 @@ int Classifier::operator()(const cv::Mat& input)
 
 void Classifier::feed_data(int body_part, const cv::Mat& input)
 {
-  std::cout << "INPUT: ";
-  for (int i = 0; i < input.cols; ++i) {
-    std::cout << input.at<double>(0, i) << ", ";
-  }
-  std::cout << std::endl;
-
   m_data.push_back(input);
   std::cout << "M_DATA: ";
   for (int i = 0; i < m_data.cols; ++i) {
@@ -61,12 +51,12 @@ void Classifier::train()
   std::clog << "Projected rows: " << m_projected.rows << ", Projected cols: " << m_projected.cols << std::endl;
 }
 
-void Classifier::save_data()
+void Classifier::save_data(const std::string& config_name)
 {
   const auto now = std::time(0);
   const auto dt = std::to_string(now);
 
-  std::ofstream output("cal_" + dt + ".csv");
+  std::ofstream output("cal_" + config_name + "_" + dt + ".csv");
   for (int i = 0; i < m_labels.rows; ++i) {
     output << m_labels.at<int>(i);
     for (int j = 0; j < m_data.cols; ++j) {
@@ -74,6 +64,28 @@ void Classifier::save_data()
     }
     output << std::endl;
   }
+}
+
+void Classifier::load_data(const std::string& file)
+{
+  std::ifstream input(file);
+  std::string line;
+
+  while (std::getline(input, line)) {
+    std::string chunk;
+    std::stringstream line_stream(line);
+
+    std::getline(line_stream, chunk, ',');
+    int label = std::stoi(chunk);
+
+    cv::Mat features{};
+    while (std::getline(line_stream, chunk, ',')) {
+      features.push_back(std::stod(chunk));
+    }
+
+    feed_data(label, features.t());
+  }
+  train();
 }
 
 }
