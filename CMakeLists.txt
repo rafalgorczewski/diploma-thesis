@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.14)
 
 project(thesis VERSION 0.1 LANGUAGES CXX)
 
+include(FetchContent)
+
 add_subdirectory(lib)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -18,17 +20,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Quick REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Quick REQUIRED)
 
-FetchContent_Declare(minidnn
-    GIT_REPOSITORY https://github.com/yixuan/MiniDNN.git
-)
-FetchContent_MakeAvailable(minidnn)
-
 FetchContent_Declare(json
     GIT_REPOSITORY https://github.com/nlohmann/json.git
 )
 FetchContent_MakeAvailable(json)
 
-set(TH_INCLUDE_DIRS "lib" "lib/ext/include" ${minidnn_SOURCE_DIR}/include ${json_SOURCE_DIR}/include)
+set(TH_INCLUDE_DIRS "lib" "lib/ext/include" ${json_SOURCE_DIR}/include)
 set(TH_LINK_DIRS "lib" "lib/ext/lib")
 
 include_directories(${TH_INCLUDE_DIRS})

@@ -2,32 +2,33 @@
 #define HQR_LIB_CLASSIFIER_HPP
 
 #include <vector>
-#include <MiniDNN.h>
-#include "bodypart.hpp"
+#include <opencv2/opencv.hpp>
 
-namespace eig = Eigen;
-namespace dnn = MiniDNN;
+#include "bodypart.hpp"
 
 namespace th {
 class Classifier
 {
 public:
-  Classifier(int input_size);
+  Classifier(int feature_vector_size);
 
-  BodyPart operator()(const eig::VectorXd& input);
+  int operator()(const cv::Mat& input);
 
-  void feed_data(BodyPart body_part, const eig::VectorXd& input);
+  void feed_data(int body_part, const cv::Mat& input);
   void train();
 
   void save_data();
 
 private:
-  int m_input_size;
+  static constexpr int CLASSES_COUNT = 3;
 
-  std::vector<eig::VectorXd> m_data;
-  std::vector<BodyPart> m_labels;
-  dnn::Network m_network;
-  dnn::RMSProp m_opt;
+  int m_feature_vector_size = 0;
+
+  cv::LDA m_lda;
+  cv::Mat m_projected;
+
+  cv::Mat m_data;
+  cv::Mat m_labels;
 };
 }
 

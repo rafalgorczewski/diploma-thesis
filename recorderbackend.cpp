@@ -1,6 +1,9 @@
 #include "recorderbackend.hpp"
 
 #include <chrono>
+#include <cstddef>
+#include <utility>
+#include <opencv2/opencv.hpp>
 
 #include <QtConcurrent/QtConcurrent>
 
@@ -46,6 +49,7 @@ void RecorderBackend::createClassifier()
 
 void RecorderBackend::trainClassifier()
 {
+  m_futureWatcher.waitForFinished();
   if (m_classifier) {
     m_classifier->train();
   }
@@ -53,6 +57,7 @@ void RecorderBackend::trainClassifier()
 
 void RecorderBackend::saveClassifierData()
 {
+  m_futureWatcher.waitForFinished();
   m_classifier->save_data();
 }
 
@@ -66,14 +71,14 @@ void RecorderBackend::calibrateRecordAsync(int seconds, int bodyPart)
   for (int second = 1; second <= seconds; ++second) {
     m_streamReader.read(1000ms);
 
-    eig::VectorXd input(channels.size() * bands.size());
-    for (int i = 0; i < channels.size(); ++i) {
-      for (int j = 0; j < bands.size(); ++j) {
+    cv::Mat input{};
+    for (std::size_t i = 0; i < channels.size(); ++i) {
+      for (std::size_t j = 0; j < bands.size(); ++j) {
         const double power = m_streamReader.spectrum(channels[i]).band_power(bands[j].first, bands[j].second);
-        input((i * bands.size()) + j) = power;
+        input.push_back(power);
       }
     }
-    m_classifier->feed_data(th::BodyPart(bodyPart), input);
+    m_classifier->feed_data(bodyPart, input.t());
 
     m_streamReader.clear();
   }
@@ -89,14 +94,16 @@ void RecorderBackend::classifyRecordAsync()
   while (true) {
     m_streamReader.read(1000ms);
 
-    eig::VectorXd input(channels.size() * bands.size());
-    for (int i = 0; i < channels.size(); ++i) {
-      for (int j = 0; j < bands.size(); ++j) {
+    cv::Mat input{};
+    for (std::size_t i = 0; i < channels.size(); ++i) {
+      for (std::size_t j = 0; j < bands.size(); ++j) {
         const double power = m_streamReader.spectrum(channels[i]).band_power(bands[j].first, bands[j].second);
-        input((i * bands.size()) + j) = power;
+        input.push_back(power);
       }
     }
-    m_currentBodyPart = static_cast<int>((*m_classifier)(input));
+    qDebug() << "Klasyfikacja...";
+    m_currentBodyPart = (*m_classifier)(input.t());
+    qDebug() << "Wynik: " << m_currentBodyPart;
     emit currentBodyPartChanged(m_currentBodyPart);
 
     m_streamReader.clear();

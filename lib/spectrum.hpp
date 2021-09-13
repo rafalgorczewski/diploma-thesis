@@ -9,8 +9,6 @@
 
 namespace th {
 
-  enum class TransformType { Dft, Stft, Wt };
-
   struct Spectrum {
     std::vector<double> frequencies;
     std::vector<double> magnitudes;

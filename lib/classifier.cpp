@@ -4,55 +4,73 @@
 #include <ctime>
 #include <string>
 #include <iostream>
+#include <utility>
+#include <cstddef>
+#include <limits>
 
 namespace th {
 
-Classifier::Classifier(int input_size) : m_input_size(input_size), m_opt(0.001) {
-  dnn::Layer* first_layer = new dnn::FullyConnected<dnn::Sigmoid>(input_size, 1);
-  dnn::Output* output_layer = new dnn::MultiClassEntropy();
+Classifier::Classifier(int feature_vector_size) : m_feature_vector_size(feature_vector_size)
+{
 
-  m_network.add_layer(first_layer);
-  m_network.set_output(output_layer);
-
-  m_network.init();
 }
 
-BodyPart Classifier::operator()(const eig::VectorXd& input)
+int Classifier::operator()(const cv::Mat& input)
 {
-  return BodyPart(m_network.predict(input)(0, 0));
+  const auto projected_input = m_lda.project(input);
+  std::clog << "Projected input rows: " << projected_input.rows << ", Projected input cols: " << projected_input.cols << std::endl;
+
+  int best_class = 0;
+  double best_dist = std::numeric_limits<double>::max();
+  for (int i = 0; i < m_projected.rows; ++i) {
+    const double d = cv::norm(m_projected.row(i), projected_input);
+    if (d < best_dist) {
+      best_dist = d;
+      best_class = i;
+    }
+  }
+
+  return m_labels.at<int>(best_class);
 }
 
-void Classifier::feed_data(BodyPart body_part, const eig::VectorXd& input)
+void Classifier::feed_data(int body_part, const cv::Mat& input)
 {
+  std::cout << "INPUT: ";
+  for (int i = 0; i < input.cols; ++i) {
+    std::cout << input.at<double>(0, i) << ", ";
+  }
+  std::cout << std::endl;
+
   m_data.push_back(input);
+  std::cout << "M_DATA: ";
+  for (int i = 0; i < m_data.cols; ++i) {
+    std::cout << m_data.at<double>(m_data.rows - 1, i) << ", ";
+  }
+  std::cout << std::endl;
+
   m_labels.push_back(body_part);
+
+  std::clog << "Data rows: " << m_data.rows << ", Data cols: " << m_data.cols << std::endl;
+  std::clog << "Labels rows: " << m_labels.rows << ", Labels cols: " << m_labels.cols << std::endl;
 }
 
 void Classifier::train()
 {
-  eig::MatrixXd x(m_input_size, m_data.size());
-  eig::MatrixXd y(1, m_labels.size());
-
-  for (int col = 0; col < m_data.size(); ++col) {
-    x.col(col) = m_data[col];
-  }
-  for (int label = 0; label < m_labels.size(); ++label) {
-    y(label) = static_cast<double>(m_labels[label]);
-  }
-
-  m_network.fit(m_opt, x, y, 100, 10);
+  m_lda.compute(m_data, m_labels.t());
+  m_projected = m_lda.project(m_data);
+  std::clog << "Projected rows: " << m_projected.rows << ", Projected cols: " << m_projected.cols << std::endl;
 }
 
 void Classifier::save_data()
 {
   const auto now = std::time(0);
-  const std::string dt = std::to_string(now);
+  const auto dt = std::to_string(now);
 
   std::ofstream output("cal_" + dt + ".csv");
-  for (int i = 0; i < m_labels.size(); ++i) {
-    output << static_cast<int>(m_labels[i]);
-    for (int j = 0; j < m_data[i].size(); ++j) {
-      output << "," << m_data[i](j);
+  for (int i = 0; i < m_labels.rows; ++i) {
+    output << m_labels.at<int>(i);
+    for (int j = 0; j < m_data.cols; ++j) {
+      output << "," << m_data.at<double>(i, j);
     }
     output << std::endl;
   }

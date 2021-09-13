@@ -47,6 +47,15 @@ ApplicationWindow {
     }
   }
 
+  function removeChannel(channel) {
+    for (var i = 0; i < electrodesModel.count; ++i) {
+      if (electrodesModel.get(i).channel === channel) {
+        electrodesModel.remove(i)
+        break
+      }
+    }
+  }
+
   function addNewBand(min, max) {
     var element = bandsModel.find(function (item) {
       return item.bandBegin === min && item.bandEnd === max
@@ -91,7 +100,7 @@ ApplicationWindow {
       classifyButton.enabled = true
 
       backendRecorder.saveClassifierData()
-      //backendRecorder.trainClassifier()
+      backendRecorder.trainClassifier()
     }
   }
 
@@ -229,13 +238,15 @@ ApplicationWindow {
         y: 32
         spacing: 16
 
-        RowLayout {
+        Row {
           Button {
             text: "Zapisz konfigurację"
+            width: panelRect.width / 2.25
             onClicked: configurator.saveConfiguration("")
           }
           Button {
             text: "Wczytaj konfigurację"
+            width: panelRect.width / 2.25
             onClicked: {
               configurator.loadConfiguration("")
 
@@ -279,12 +290,20 @@ ApplicationWindow {
                 text: "Nienazwana"
               }
             }
-            Button {
-              text: "Dodaj"
-              Layout.fillWidth: true
+            Row {
+              Button {
+                text: "Dodaj"
+                width: panelRect.width / 2.35
 
-              onClicked: addNewChannel(newElectrodeChannel.value,
-                                       newElectrodeName.text)
+                onClicked: addNewChannel(newElectrodeChannel.value,
+                                         newElectrodeName.text)
+              }
+              Button {
+                text: "Usuń"
+                width: panelRect.width / 2.35
+
+                onClicked: removeChannel(newElectrodeChannel.value)
+              }
             }
           }
         }
@@ -297,6 +316,13 @@ ApplicationWindow {
           Row {
             spacing: 10
 
+            TextField {
+              id: lslChannelField
+              width: 350
+
+              text: "MyAudioStream"
+            }
+
             Button {
               id: lslConnectButton
 
@@ -306,13 +332,6 @@ ApplicationWindow {
                 backendRecorder.resolveStream()
                 enabled = false
               }
-            }
-
-            TextField {
-              id: lslChannelField
-              width: 350
-
-              text: "MyAudioStream"
             }
           }
         }
@@ -329,6 +348,7 @@ ApplicationWindow {
             }
             SpinBox {
               id: runsSpinBox
+              width: panelRect.width / 3.25
               from: 1
               to: 100
 
@@ -337,23 +357,30 @@ ApplicationWindow {
 
             Button {
               id: calibrateButton
-              Layout.fillWidth: true
+              width: panelRect.width / 3.25
               enabled: !lslConnectButton.enabled
 
               text: "Kalibruj"
 
-              onClicked: backendCalibration.calibrate(runsSpinBox.value)
+              onClicked: {
+                calibrateButton.enabled = false
+                backendCalibration.calibrate(runsSpinBox.value)
+                tabBar.currentIndex = 1
+              }
             }
           }
         }
         Button {
           id: classifyButton
 
-          enabled: !lslConnectButton.enabled
+          enabled: !lslConnectButton.enabled && !calibrateButton.enabled
           Layout.fillWidth: true
-          text: "Nagrywaj"
+          text: "Rejestruj"
 
-          onClicked: backendRecorder.classifyRecord()
+          onClicked: {
+            backendRecorder.classifyRecord()
+            tabBar.currentIndex = 2
+          }
         }
         GroupBox {
           Layout.fillWidth: true
@@ -391,6 +418,7 @@ ApplicationWindow {
           }
         }
         GroupBox {
+          id: bandsBox
           Layout.fillWidth: true
 
           title: "Pasma [Hz]"
@@ -399,22 +427,34 @@ ApplicationWindow {
             Row {
               Button {
                 text: "Dodaj"
-                onClicked: addNewBand(bandBeginSpinBox.value,
-                                      bandEndSpinBox.value)
+                width: bandsBox.width / 3
+                onClicked: addNewBand(
+                             Number.fromLocaleString(bandBeginSpinBox.text),
+                             Number.fromLocaleString(bandEndSpinBox.text))
               }
-              SpinBox {
+              TextField {
                 id: bandBeginSpinBox
-
-                from: 1
-                to: 50
-                value: 8
+                text: "8"
+                horizontalAlignment: TextInput.AlignHCenter
+                width: panelRect.width / 3.9
+                validator: IntValidator {
+                  bottom: 1
+                  top: 44000
+                }
               }
-              SpinBox {
-                id: bandEndSpinBox
+              Label {
+                text: "_"
+              }
 
-                from: 1
-                to: 50
-                value: 12
+              TextField {
+                id: bandEndSpinBox
+                text: "12"
+                horizontalAlignment: TextInput.AlignHCenter
+                width: panelRect.width / 3.9
+                validator: IntValidator {
+                  bottom: 1
+                  top: 44000
+                }
               }
             }
             ListView {
@@ -427,13 +467,13 @@ ApplicationWindow {
               model: bandsModel
               delegate: Rectangle {
                 color: "white"
-                width: bandsView.width
+                width: bandsView.width + 14
                 height: 32
                 Text {
-                  text: bandBegin + " - " + bandEnd
+                  text: bandBegin + " — " + bandEnd
                   anchors.centerIn: parent
 
-                  font.pixelSize: 30
+                  font.pixelSize: 26
                 }
               }
             }
