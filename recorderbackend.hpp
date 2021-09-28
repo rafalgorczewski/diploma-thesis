@@ -11,6 +11,7 @@
 #include <QString>
 #include <QAbstractListModel>
 #include <QFutureWatcher>
+#include <QVector>
 
 #include "streamreader.hpp"
 #include "bodypart.hpp"
@@ -44,8 +45,9 @@ signals:
   void lslChannelChanged(QString);
   void channelsModelChanged(QAbstractListModel*);
   void bandsModelChanged(QAbstractListModel*);
-  void channelPowerChanged(int channel, double power);
   void currentBodyPartChanged(int bodyPart);
+
+  void channelPowersChanged(int channel, QVector<double> powers);
 
 private:
   std::vector<int> getChannels();

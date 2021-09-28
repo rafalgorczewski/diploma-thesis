@@ -17,8 +17,8 @@ set(CMAKE_AUTORCC ON)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Quick REQUIRED)
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Quick REQUIRED)
+find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Widgets Quick Charts REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Widgets Quick Charts REQUIRED)
 
 FetchContent_Declare(json
     GIT_REPOSITORY https://github.com/nlohmann/json.git
@@ -36,7 +36,8 @@ set(PROJECT_SOURCES
         qml.qrc
         recorderbackend.hpp recorderbackend.cpp
         calibrationbackend.hpp calibrationbackend.cpp
-        configurator.hpp configurator.cpp)
+        configurator.hpp configurator.cpp
+        plotter.h plotter.cpp)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(thesis
@@ -58,7 +59,7 @@ endif()
 target_compile_definitions(thesis
   PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
 target_link_libraries(thesis
-  PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Quick thesis_lib lsl)
+  PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Quick Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Charts thesis_lib lsl)
 
 set_target_properties(thesis PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com

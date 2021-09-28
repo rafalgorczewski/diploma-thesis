@@ -1,9 +1,11 @@
 #include <QGuiApplication>
+#include <QApplication>
 #include <QQmlApplicationEngine>
 
 #include "calibrationbackend.hpp"
 #include "recorderbackend.hpp"
 #include "configurator.hpp"
+#include "plotter.h"
 
 int main(int argc, char *argv[])
 {
@@ -11,13 +13,14 @@ int main(int argc, char *argv[])
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 #endif
 
-    QGuiApplication app(argc, argv);
+    QApplication app(argc, argv);
 
     QQmlApplicationEngine engine;
 
     qmlRegisterType<CalibrationBackend>("Backend.Calibration",1,0,"Calibration");
     qmlRegisterType<RecorderBackend>("Backend.Recorder",1,0,"Recorder");
     qmlRegisterType<Configurator>("Backend.Configurator",1,0,"Configurator");
+    qmlRegisterType<Plotter>("Backend.Plotter",1,0,"Plotter");
 
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,

@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Window
+import QtCharts
 import QtQuick.Layouts
 import QtQuick.Controls
 import QtQuick.Controls.Material
@@ -8,6 +9,7 @@ import Qt.labs.platform
 import Backend.Calibration
 import Backend.Recorder
 import Backend.Configurator
+import Backend.Plotter
 
 ApplicationWindow {
   id: root
@@ -21,6 +23,13 @@ ApplicationWindow {
   Material.theme: Material.Dark
 
   font.pointSize: 16
+
+  function findIndexInModel(model, criteria) {
+    for (var i = 0; i < model.count; ++i)
+      if (criteria(model.get(i)))
+        return i
+    return null
+  }
 
   function calibrationArrowDisable() {
     calibrationArrowLeft.opacity = 0
@@ -68,6 +77,16 @@ ApplicationWindow {
       }
       bandsModel.append(newBand)
     }
+  }
+
+  function getBandsAsStrings() {
+    var names = []
+    for (var i = 0; i < bandsModel.count; ++i) {
+      var item = bandsModel.get(i)
+      var name = "" + item.bandBegin + "-" + item.bandEnd
+      names.push(name)
+    }
+    return names
   }
 
   FileDialog {
@@ -153,11 +172,14 @@ ApplicationWindow {
     channelsModel: electrodesModel
     bandsModel: bandsModel
 
-    onChannelPowerChanged: {
-      var element = electrodesModel.find(function (item) {
+    onChannelPowersChanged: {
+      var electrodeIndex = findIndexInModel(electrodesModel, function (item) {
         return item.channel === channel
       })
-      element.alpha = power
+      if (electrodeIndex !== null) {
+        var electrode = electrodesView.itemAtIndex(electrodeIndex)
+        plotter.plot(electrode.powerSeries, powers, electrode.powerSeriesYAxis)
+      }
     }
 
     onCurrentBodyPartChanged: {
@@ -177,6 +199,10 @@ ApplicationWindow {
 
     onNewChannelLoaded: addNewChannel(number, name)
     onNewBandLoaded: addNewBand(min, max)
+  }
+
+  Plotter {
+    id: plotter
   }
 
   ListModel {
@@ -225,13 +251,13 @@ ApplicationWindow {
     anchors.right: parent.right
     anchors.bottom: parent.bottom
     TabButton {
-      text: "Elektrody"
+      text: "Electrodes"
     }
     TabButton {
-      text: "Kalibracja"
+      text: "Calibration"
     }
     TabButton {
-      text: "Klasyfikacja"
+      text: "Classification"
     }
   }
 
@@ -244,19 +270,50 @@ ApplicationWindow {
 
     Item {
       id: electrodesTab
-      GridView {
+      ListView {
         id: electrodesView
-        cellHeight: 128
-        cellWidth: 128
         anchors.fill: parent
         model: electrodesModel
+
+        clip: true
+
+        spacing: 4
+
         delegate: Rectangle {
-          width: electrodesView.cellWidth
-          height: electrodesView.cellHeight
+          property alias powerSeries: powerSeries
+          property alias powerSeriesYAxis: axisY
+
+          width: electrodesView.width
+          height: 256
+
+          ChartView {
+            id: chart
+            anchors.fill: parent
+            antialiasing: true
+            legend.visible: false
+
+            BarCategoryAxis {
+              id: axisX
+              categories: getBandsAsStrings()
+            }
+
+            ValueAxis {
+              id: axisY
+              min: 0
+              max: 1
+            }
+
+            BarSeries {
+              id: powerSeries
+              axisX: axisX
+              axisY: axisY
+            }
+          }
 
           Text {
             text: channel + " | " + name
-            anchors.centerIn: parent
+            anchors.top: parent.top
+            anchors.horizontalCenter: parent.horizontalCenter
           }
         }
       }

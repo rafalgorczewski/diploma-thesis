@@ -6,6 +6,7 @@
 #include <opencv2/opencv.hpp>
 
 #include <QtConcurrent/QtConcurrent>
+#include <QVector>
 
 RecorderBackend::RecorderBackend() : RecorderBackend(nullptr)
 {
@@ -76,10 +77,14 @@ void RecorderBackend::calibrateRecordAsync(int seconds, int bodyPart)
 
     cv::Mat input{};
     for (std::size_t i = 0; i < channels.size(); ++i) {
+      QVector<double> channelPowers;
       for (std::size_t j = 0; j < bands.size(); ++j) {
         const double power = m_streamReader.spectrum(channels[i]).band_power(bands[j].first, bands[j].second);
         input.push_back(power);
+        channelPowers.push_back(power);
       }
+
+      emit channelPowersChanged(channels[i], channelPowers);
     }
     m_classifier.feed_data(bodyPart, input.t());
 
@@ -99,14 +104,19 @@ void RecorderBackend::classifyRecordAsync()
 
     cv::Mat input{};
     for (std::size_t i = 0; i < channels.size(); ++i) {
+      QVector<double> channelPowers;
       for (std::size_t j = 0; j < bands.size(); ++j) {
         const double power = m_streamReader.spectrum(channels[i]).band_power(bands[j].first, bands[j].second);
         input.push_back(power);
+        channelPowers.push_back(power);
       }
+
+      emit channelPowersChanged(channels[i], channelPowers);
     }
     qDebug() << "Klasyfikacja...";
     m_currentBodyPart = m_classifier(input.t());
     qDebug() << "Wynik: " << m_currentBodyPart;
+
     emit currentBodyPartChanged(m_currentBodyPart);
 
     m_streamReader.clear();
