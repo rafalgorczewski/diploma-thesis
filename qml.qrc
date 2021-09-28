@@ -3,5 +3,10 @@
         <file>main.qml</file>
         <file>gfx/arrow_left.png</file>
         <file>gfx/arrow_right.png</file>
+        <file>ThWindowBar.qml</file>
+        <file>ThPanel.qml</file>
+        <file>ThHorizontalSeparator.qml</file>
+        <file>ThHorizontalCategory.qml</file>
+        <file>ThHorizontalBreak.qml</file>
     </qresource>
 </RCC>

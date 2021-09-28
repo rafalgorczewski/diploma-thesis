@@ -16,7 +16,7 @@ ApplicationWindow {
   height: 1080
   visible: true
   title: "MI BCI"
-  flags: Qt.FramelessWindowHint | Qt.Window
+  flags: Qt.CustomizeWindowHint | Qt.Window
 
   Material.theme: Material.Dark
 
@@ -80,7 +80,7 @@ ApplicationWindow {
       path = path.replace(/^(file:\/{3})/, "")
       var cleanPath = decodeURIComponent(path)
       backendRecorder.loadClassifierData(cleanPath)
-      classifyButton.enabled = true
+      panel.classifyButton.enabled = true
     }
   }
 
@@ -112,13 +112,13 @@ ApplicationWindow {
 
   Calibration {
     id: backendCalibration
-    preparationTime: preparationTimeSpinBox.value
-    imageryTime: imageryTimeSpinBox.value
-    cooldownTime: cooldownTimeSpinBox.value
+    preparationTime: panel.preparationTime
+    imageryTime: panel.imageryTime
+    cooldownTime: panel.cooldownTime
 
     onCalibrationStarted: {
-      calibrateButton.enabled = false
-      classifyButton.enabled = false
+      panel.calibrateButton.enabled = false
+      panel.classifyButton.enabled = false
     }
     onRunStarted: {
       calibrationArrowDisable()
@@ -135,8 +135,8 @@ ApplicationWindow {
       backendRecorder.calibrateRecord(cooldownTime, 0)
     }
     onCalibrationFinished: {
-      calibrateButton.enabled = true
-      classifyButton.enabled = true
+      panel.calibrateButton.enabled = true
+      panel.classifyButton.enabled = true
 
       var str = configurator.fileName
       backendRecorder.saveClassifierData((String(str).slice(
@@ -149,7 +149,7 @@ ApplicationWindow {
   Recorder {
     id: backendRecorder
 
-    lslChannel: lslChannelField.text
+    lslChannel: panel.lslChannel
     channelsModel: electrodesModel
     bandsModel: bandsModel
 
@@ -169,10 +169,10 @@ ApplicationWindow {
     id: configurator
 
     channelsModel: electrodesModel
-    runsCount: runsSpinBox.value
-    preparationTime: preparationTimeSpinBox.value
-    imageryTime: imageryTimeSpinBox.value
-    cooldownTime: cooldownTimeSpinBox.value
+    runsCount: panel.runsCount
+    preparationTime: panel.preparationTime
+    imageryTime: panel.imageryTime
+    cooldownTime: panel.cooldownTime
     bandsModel: bandsModel
 
     onNewChannelLoaded: addNewChannel(number, name)
@@ -199,363 +199,28 @@ ApplicationWindow {
     }
   }
 
-  Rectangle {
+  ThWindowBar {
     id: toolbar
 
     anchors.top: parent.top
     anchors.left: parent.left
     anchors.right: parent.right
     height: 32
-    color: Material.accentColor
-
-    MouseArea {
-      anchors.fill: parent
-
-      property variant clickPos: Qt.point(0, 0)
-
-      onPressed: {
-        clickPos = Qt.point(mouseX, mouseY)
-      }
-      onPositionChanged: {
-        root.x = root.x + mouseX - clickPos.x
-        root.y = root.y + mouseY - clickPos.y
-      }
-    }
-
-    Rectangle {
-      id: closeRect
-
-      anchors.right: toolbar.right
-      height: toolbar.height
-      width: 32
-
-      color: Material.accentColor
-
-      Label {
-        text: "✕"
-      }
-
-      MouseArea {
-        anchors.fill: parent
-        onClicked: root.close()
-      }
-    }
-
-    Rectangle {
-      anchors.right: closeRect.left
-      height: toolbar.height
-      width: 32
-
-      color: Material.accentColor
-
-      Label {
-        text: "―"
-      }
-
-      MouseArea {
-        anchors.fill: parent
-        onClicked: root.showMinimized()
-      }
-    }
   }
 
-  Rectangle {
-    id: panelRect
+  ThPanel {
+    id: panel
 
-    width: 512 + (panelColumn.x * 2)
     anchors.top: toolbar.bottom
     anchors.bottom: parent.bottom
 
-    color: "black"
-
-    ScrollView {
-      width: 512 + (panelColumn.x * 2)
-      height: root.height - 32
-      clip: true
-
-      ColumnLayout {
-        id: panelColumn
-
-        x: 32
-        y: 32
-        spacing: 16
-
-        Row {
-          Button {
-            text: "Zapisz konfigurację"
-            width: panelRect.width / 2.25
-            onClicked: configSaveFileDialog.open()
-          }
-          Button {
-            text: "Wczytaj konfigurację"
-            width: panelRect.width / 2.25
-            onClicked: {
-              configLoadFileDialog.open()
-
-              runsSpinBox.value = configurator.runsCount
-              preparationTimeSpinBox.value = configurator.preparationTime
-              imageryTimeSpinBox.value = configurator.imageryTime
-              cooldownTimeSpinBox.value = configurator.cooldownTime
-            }
-          }
-        }
-
-        GroupBox {
-          id: addElectrodeBox
-          Layout.fillWidth: true
-
-          title: "Nowa elektroda"
-
-          ColumnLayout {
-
-            Row {
-              spacing: 10
-
-              Label {
-                text: "Kanał:"
-              }
-
-              SpinBox {
-                id: newElectrodeChannel
-                from: 0
-                to: 40
-
-                value: 0
-              }
-
-              Label {
-                text: "Nazwa:"
-              }
-
-              TextField {
-                id: newElectrodeName
-                text: "Nienazwana"
-              }
-            }
-            Row {
-              Button {
-                text: "Dodaj"
-                width: panelRect.width / 2.35
-
-                onClicked: addNewChannel(newElectrodeChannel.value,
-                                         newElectrodeName.text)
-              }
-              Button {
-                text: "Usuń"
-                width: panelRect.width / 2.35
-
-                onClicked: removeChannel(newElectrodeChannel.value)
-              }
-            }
-          }
-        }
-        GroupBox {
-          id: lslBox
-          Layout.fillWidth: true
-
-          title: "LSL"
-
-          Row {
-            spacing: 10
-
-            TextField {
-              id: lslChannelField
-              width: 350
-
-              text: "MyAudioStream"
-            }
-
-            Button {
-              id: lslConnectButton
-
-              text: "Podłącz LSL"
-
-              onClicked: {
-                backendRecorder.resolveStream()
-                enabled = false
-              }
-            }
-          }
-        }
-        GroupBox {
-          id: calibrationBox
-          Layout.fillWidth: true
-
-          title: "Kalibracja"
-
-          Row {
-            spacing: 10
-            Label {
-              text: "Przebiegi:"
-            }
-            SpinBox {
-              id: runsSpinBox
-              width: panelRect.width / 3.25
-              from: 1
-              to: 100
-
-              value: 1
-            }
-
-            Button {
-              id: loadCalibrationButton
-              width: panelRect.width / 6.5
-              enabled: !lslConnectButton.enabled
-
-              text: "Wczytaj"
-
-              onClicked: {
-                calibrationFileDialog.open()
-              }
-            }
-
-            Button {
-              id: calibrateButton
-              width: panelRect.width / 6.5
-              enabled: !lslConnectButton.enabled
-
-              text: "Kalibruj"
-
-              onClicked: {
-                calibrateButton.enabled = false
-                backendCalibration.calibrate(runsSpinBox.value)
-                tabBar.currentIndex = 1
-              }
-            }
-          }
-        }
-        Row {
-          Button {
-            id: classifyButton
-            width: panelRect.width / 2.35
-            enabled: !lslConnectButton.enabled && !calibrateButton.enabled
-            text: "Rejestruj"
-
-            onClicked: {
-              enabled = false
-              stopButton.enabled = true
-              backendRecorder.classifyRecord()
-              tabBar.currentIndex = 2
-            }
-          }
-          Button {
-            id: stopButton
-            width: panelRect.width / 2.35
-            enabled: false
-            text: "Zatrzymaj"
-
-            onClicked: {
-              backendRecorder.stopRecording()
-              enabled = false
-              classifyButton.enabled = true
-            }
-          }
-        }
-        GroupBox {
-          Layout.fillWidth: true
-
-          title: "Czasy trwania sekcji [s]"
-          Row {
-
-            SpinBox {
-              id: preparationTimeSpinBox
-              width: 160
-
-              from: 1
-              to: 20
-
-              value: 2
-            }
-            SpinBox {
-              id: imageryTimeSpinBox
-              width: 160
-
-              from: 1
-              to: 20
-
-              value: 7
-            }
-            SpinBox {
-              id: cooldownTimeSpinBox
-              width: 160
-
-              from: 1
-              to: 20
-
-              value: 2
-            }
-          }
-        }
-        GroupBox {
-          id: bandsBox
-          Layout.fillWidth: true
-
-          title: "Pasma [Hz]"
-
-          Column {
-            Row {
-              Button {
-                text: "Dodaj"
-                width: bandsBox.width / 3
-                onClicked: addNewBand(
-                             Number.fromLocaleString(bandBeginSpinBox.text),
-                             Number.fromLocaleString(bandEndSpinBox.text))
-              }
-              TextField {
-                id: bandBeginSpinBox
-                text: "8"
-                horizontalAlignment: TextInput.AlignHCenter
-                width: panelRect.width / 3.9
-                validator: IntValidator {
-                  bottom: 1
-                  top: 44000
-                }
-              }
-              Label {
-                text: "_"
-              }
-
-              TextField {
-                id: bandEndSpinBox
-                text: "12"
-                horizontalAlignment: TextInput.AlignHCenter
-                width: panelRect.width / 3.9
-                validator: IntValidator {
-                  bottom: 1
-                  top: 44000
-                }
-              }
-            }
-            ListView {
-              id: bandsView
-
-              anchors.left: parent.left
-              anchors.right: parent.right
-              height: 256
-
-              model: bandsModel
-              delegate: Rectangle {
-                color: "white"
-                width: bandsView.width + 14
-                height: 32
-                Text {
-                  text: bandBegin + " — " + bandEnd
-                  anchors.centerIn: parent
-
-                  font.pixelSize: 26
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+    width: root.width / 3
   }
 
   TabBar {
     id: tabBar
 
-    anchors.left: panelRect.right
+    anchors.left: panel.right
     anchors.top: toolbar.bottom
     anchors.right: parent.right
     anchors.bottom: parent.bottom
@@ -601,6 +266,7 @@ ApplicationWindow {
       Image {
         id: calibrationArrowLeft
         anchors.left: parent.left
+        width: root.width / 3.5
 
         x: calibrationTab.x + (calibrationTab.width / 2) - (width / 2)
         y: calibrationTab.y + (calibrationTab.height / 2) - (height / 2)
@@ -617,6 +283,7 @@ ApplicationWindow {
       Image {
         id: calibrationArrowRight
         anchors.right: parent.right
+        width: root.width / 3.5
 
         x: calibrationTab.x + (calibrationTab.width / 2) - (width / 2)
         y: calibrationTab.y + (calibrationTab.height / 2) - (height / 2)
