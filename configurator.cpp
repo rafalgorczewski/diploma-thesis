@@ -49,6 +49,7 @@ void Configurator::loadConfiguration(QString name)
   std::ifstream input(name.toStdString());
   input >> configuration;
 
+  emit clearElectrodes();
   auto channelsObject = configuration["channels"];
   for (auto channelObject : channelsObject) {
     const int number = channelObject[0];
@@ -62,6 +63,7 @@ void Configurator::loadConfiguration(QString name)
   m_imageryTime = configuration["imageryTime"];
   m_cooldownTime = configuration["cooldownTime"];
 
+  emit clearBands();
   auto bandsObject = configuration["bands"];
   for (auto bandObject : bandsObject) {
     const int min = bandObject[0];

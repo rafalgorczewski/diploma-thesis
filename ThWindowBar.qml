@@ -21,6 +21,13 @@ Rectangle {
     }
   }
 
+  Label {
+    anchors.left: toolbar.left
+    height: toolbar.height
+
+    text: "MI BCI"
+  }
+
   Rectangle {
     id: closeRect
 

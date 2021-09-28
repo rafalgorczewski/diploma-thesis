@@ -33,12 +33,8 @@ Rectangle {
       id: scrollingItem
 
       anchors.fill: parent
-      anchors.margins: {
-        left: 32
-        right: 32
-        top: 32
-        bottom: 32
-      }
+      anchors.rightMargin: 32
+      anchors.leftMargin: 32
 
       ThHorizontalSeparator {
         id: configurationSeparator
@@ -109,19 +105,12 @@ Rectangle {
               Layout.fillWidth: true
             }
           }
-          RowLayout {
-            Button {
-              text: "Add"
-              Layout.fillWidth: true
+          Button {
+            text: "Add"
+            Layout.fillWidth: true
 
-              onClicked: addNewChannel(newElectrodeChannel.value,
-                                       newElectrodeName.text)
-            }
-            Button {
-              text: "Remove"
-
-              onClicked: removeChannel(newElectrodeChannel.value)
-            }
+            onClicked: addNewChannel(newElectrodeChannel.value,
+                                     newElectrodeName.text)
           }
         }
       }
@@ -206,11 +195,30 @@ Rectangle {
               height: 32
 
               Label {
-                text: bandBegin + "Hz — " + bandEnd + " Hz"
+                text: bandBegin + " Hz — " + bandEnd + " Hz"
                 anchors.fill: parent
                 horizontalAlignment: TextInput.AlignHCenter
 
-                font.pixelSize: parent.height / 1.5
+                font.pointSize: parent.height / 2
+              }
+              Rectangle {
+                anchors.right: parent.right
+                height: parent.height
+                width: height
+
+                color: "white"
+
+                Label {
+                  text: "✕"
+                  anchors.centerIn: parent
+                  font.pointSize: 10
+                  color: "black"
+                }
+
+                MouseArea {
+                  anchors.fill: parent
+                  onClicked: removeBand(bandBegin, bandEnd)
+                }
               }
             }
           }
@@ -308,13 +316,13 @@ Rectangle {
 
         Button {
           Layout.fillWidth: true
-          text: "Save settings 💾"
+          text: "Save settings"
           onClicked: configSaveFileDialog.open()
         }
 
         Button {
           Layout.fillWidth: true
-          text: "Load settings 📂"
+          text: "Load settings"
           onClicked: {
             configLoadFileDialog.open()
 

@@ -79,6 +79,16 @@ ApplicationWindow {
     }
   }
 
+  function removeBand(bandBegin, bandEnd) {
+    for (var i = 0; i < bandsModel.count; ++i) {
+      var band = bandsModel.get(i)
+      if (band.bandBegin === bandBegin && band.bandEnd === bandEnd) {
+        bandsModel.remove(i)
+        break
+      }
+    }
+  }
+
   function getBandsAsStrings() {
     var names = []
     for (var i = 0; i < bandsModel.count; ++i) {
@@ -197,6 +207,9 @@ ApplicationWindow {
     cooldownTime: panel.cooldownTime
     bandsModel: bandsModel
 
+    onClearElectrodes: electrodesModel.clear()
+    onClearBands: bandsModel.clear()
+
     onNewChannelLoaded: addNewChannel(number, name)
     onNewBandLoaded: addNewBand(min, max)
   }
@@ -282,6 +295,7 @@ ApplicationWindow {
         delegate: Rectangle {
           property alias powerSeries: powerSeries
           property alias powerSeriesYAxis: axisY
+          color: Material.background
 
           width: electrodesView.width
           height: 256
@@ -291,14 +305,19 @@ ApplicationWindow {
             anchors.fill: parent
             antialiasing: true
             legend.visible: false
+            backgroundColor: "black"
+
+            theme: ChartView.ChartThemeDark
 
             BarCategoryAxis {
               id: axisX
+              color: "white"
               categories: getBandsAsStrings()
             }
 
             ValueAxis {
               id: axisY
+              color: "white"
               min: 0
               max: 1
             }
@@ -310,10 +329,44 @@ ApplicationWindow {
             }
           }
 
-          Text {
-            text: channel + " | " + name
+          Rectangle {
             anchors.top: parent.top
             anchors.horizontalCenter: parent.horizontalCenter
+
+            radius: 10
+
+            color: "black"
+
+            width: channelText.width * 3
+            height: channelText.height * 1.2
+            Text {
+              id: channelText
+              text: channel + " | " + name
+              color: "white"
+              anchors.centerIn: parent
+              font.pointSize: 10
+              font.bold: true
+            }
+            Rectangle {
+              anchors.right: parent.right
+              height: parent.height
+              width: height
+              radius: 10
+
+              color: "white"
+
+              Label {
+                text: "✕"
+                anchors.centerIn: parent
+                font.pointSize: 10
+                color: "black"
+              }
+
+              MouseArea {
+                anchors.fill: parent
+                onClicked: removeChannel(channel)
+              }
+            }
           }
         }
       }

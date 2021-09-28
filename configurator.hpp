@@ -33,6 +33,9 @@ signals:
   void cooldownTimeChanged();
   void bandsModelChanged();
 
+  void clearElectrodes();
+  void clearBands();
+
   void newChannelLoaded(int number, QString name);
   void newBandLoaded(int min, int max);
 
