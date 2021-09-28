@@ -24,6 +24,4 @@ void Plotter::plot(QBarSeries* series, QVector<double> powers, QValueAxis* yAxis
     set->append(power);
   }
   series->append(set);
-
-  qDebug() << "COUNT" << series->count();
 }

@@ -113,10 +113,7 @@ void RecorderBackend::classifyRecordAsync()
 
       emit channelPowersChanged(channels[i], channelPowers);
     }
-    qDebug() << "Klasyfikacja...";
     m_currentBodyPart = m_classifier(input.t());
-    qDebug() << "Wynik: " << m_currentBodyPart;
-
     emit currentBodyPartChanged(m_currentBodyPart);
 
     m_streamReader.clear();
