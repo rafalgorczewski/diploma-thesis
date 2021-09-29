@@ -16,6 +16,10 @@ public:
   void feed_data(int body_part, const cv::Mat& input);
   void train();
 
+  cv::Mat projectInput(const cv::Mat& input);
+  const cv::Mat& getProjectedData() const;
+  const cv::Mat& getLabels() const;
+
   void save_data(const std::string& config_name);
   void load_data(const std::string& file);
 

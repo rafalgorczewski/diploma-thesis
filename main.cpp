@@ -2,6 +2,8 @@
 #include <QApplication>
 #include <QQmlApplicationEngine>
 
+#include <opencv2/opencv.hpp>
+
 #include "calibrationbackend.hpp"
 #include "recorderbackend.hpp"
 #include "configurator.hpp"
@@ -16,6 +18,8 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
 
     QQmlApplicationEngine engine;
+
+    qRegisterMetaType<const cv::Mat&>("const cv::Mat&");
 
     qmlRegisterType<CalibrationBackend>("Backend.Calibration",1,0,"Calibration");
     qmlRegisterType<RecorderBackend>("Backend.Recorder",1,0,"Recorder");

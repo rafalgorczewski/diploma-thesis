@@ -3,7 +3,6 @@
 #include <chrono>
 #include <cstddef>
 #include <utility>
-#include <opencv2/opencv.hpp>
 
 #include <QtConcurrent/QtConcurrent>
 #include <QVector>
@@ -47,6 +46,26 @@ void RecorderBackend::trainClassifier()
   m_classifier.train();
 }
 
+QVector<QVector<double>> RecorderBackend::getClassifierProjectedData() const
+{
+  const auto& projectedData = m_classifier.getProjectedData();
+  QVector<QVector<double>> projectedDataVec;
+  for (int i = 0; i < projectedData.rows; ++i) {
+    projectedDataVec.push_back(QVector<double>{projectedData.at<double>(i, 0), projectedData.at<double>(i, 1)});
+  }
+  return projectedDataVec;
+}
+
+QVector<int> RecorderBackend::getClassifierLabels() const
+{
+  const auto& labels = m_classifier.getLabels();
+  QVector<int> labelsVec;
+  for (int i = 0; i < labels.rows; ++i) {
+    labelsVec.push_back(labels.at<int>(i, 0));
+  }
+  return labelsVec;
+}
+
 void RecorderBackend::saveClassifierData(QString configName)
 {
   m_futureWatcher.waitForFinished();
@@ -58,6 +77,7 @@ void RecorderBackend::loadClassifierData(QString file)
   m_futureWatcher.waitForFinished();
   m_classifier = {};
   m_classifier.load_data(file.toStdString());
+  emit classifierTrained();
 }
 
 void RecorderBackend::stopRecording()
@@ -90,6 +110,8 @@ void RecorderBackend::calibrateRecordAsync(int seconds, int bodyPart)
 
     m_streamReader.clear();
   }
+
+  emit classifierTrained();
 }
 
 void RecorderBackend::classifyRecordAsync()
@@ -114,6 +136,14 @@ void RecorderBackend::classifyRecordAsync()
       emit channelPowersChanged(channels[i], channelPowers);
     }
     m_currentBodyPart = m_classifier(input.t());
+
+    const auto projectedInput = m_classifier.projectInput(input.t());
+    QVector<double> labelsVec;
+    for (int i = 0; i < projectedInput.cols; ++i) {
+      labelsVec.push_back(projectedInput.at<double>(0, i));
+    }
+    emit newInput(labelsVec);
+
     emit currentBodyPartChanged(m_currentBodyPart);
 
     m_streamReader.clear();

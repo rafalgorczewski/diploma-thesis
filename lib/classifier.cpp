@@ -8,6 +8,8 @@
 #include <cstddef>
 #include <limits>
 #include <sstream>
+#include <unordered_map>
+#include <numeric>
 
 namespace th {
 
@@ -15,17 +17,24 @@ int Classifier::operator()(const cv::Mat& input)
 {
   const auto projected_input = m_lda.project(input);
 
-  int best_class = 0;
-  double best_dist = std::numeric_limits<double>::max();
+  std::unordered_map<int, std::vector<double>> class_distances;
   for (int i = 0; i < m_projected.rows; ++i) {
     const double d = cv::norm(m_projected.row(i), projected_input);
-    if (d < best_dist) {
-      best_dist = d;
-      best_class = i;
+    class_distances[m_labels.at<int>(i)].push_back(d);
+  }
+
+  int best_class{};
+  double best_dist = std::numeric_limits<double>::max();
+  for (auto& [cls, distances] : class_distances) {
+    const double mean = std::accumulate(distances.cbegin(), distances.cend(), 0) / distances.size();
+
+    if (mean < best_dist) {
+      best_dist = mean;
+      best_class = cls;
     }
   }
 
-  return m_labels.at<int>(best_class);
+  return best_class;
 }
 
 void Classifier::feed_data(int body_part, const cv::Mat& input)
@@ -38,6 +47,21 @@ void Classifier::train()
 {
   m_lda.compute(m_data, m_labels.t());
   m_projected = m_lda.project(m_data);
+}
+
+cv::Mat Classifier::projectInput(const cv::Mat& input)
+{
+  return m_lda.project(input);
+}
+
+const cv::Mat& Classifier::getProjectedData() const
+{
+  return m_projected;
+}
+
+const cv::Mat& Classifier::getLabels() const
+{
+  return m_labels;
 }
 
 void Classifier::save_data(const std::string& config_name)

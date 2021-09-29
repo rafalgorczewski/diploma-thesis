@@ -6,6 +6,8 @@
 #include <memory>
 #include <utility>
 
+#include <opencv2/opencv.hpp>
+
 #include <QObject>
 #include <qqml.h>
 #include <QString>
@@ -35,6 +37,8 @@ public:
   Q_INVOKABLE void classifyRecord();
 
   Q_INVOKABLE void trainClassifier();
+  Q_INVOKABLE QVector<QVector<double>> getClassifierProjectedData() const;
+  Q_INVOKABLE QVector<int> getClassifierLabels() const;
 
   Q_INVOKABLE void saveClassifierData(QString configName);
   Q_INVOKABLE void loadClassifierData(QString file);
@@ -48,6 +52,9 @@ signals:
   void currentBodyPartChanged(int bodyPart);
 
   void channelPowersChanged(int channel, QVector<double> powers);
+  void classifierTrained();
+
+  void newInput(QVector<double> input);
 
 private:
   std::vector<int> getChannels();

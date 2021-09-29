@@ -188,12 +188,24 @@ ApplicationWindow {
       })
       if (electrodeIndex !== null) {
         var electrode = electrodesView.itemAtIndex(electrodeIndex)
-        plotter.plot(electrode.powerSeries, powers, electrode.powerSeriesYAxis)
+        plotter.plotPowers(electrode.powerSeries, powers,
+                           electrode.powerSeriesYAxis)
       }
     }
 
     onCurrentBodyPartChanged: {
       classificationLayout.currentIndex = bodyPart
+    }
+
+    onClassifierTrained: {
+      plotter.plotClassificationPoints(
+            leftPointsSeries, rightPointsSeries, nonePointsSeries,
+            backendRecorder.getClassifierProjectedData(),
+            backendRecorder.getClassifierLabels(), pointsAxisX, pointsAxisY)
+    }
+
+    onNewInput: {
+      plotter.plotClassificationPoints(inputPointSeries, input)
     }
   }
 
@@ -402,21 +414,97 @@ ApplicationWindow {
     }
     Item {
       id: classificationTab
-      Item {
-        id: classificationArrow
-        StackLayout {
-          id: classificationLayout
-          currentIndex: backendRecorder.currentBodyPart
-          Item {}
-          Image {
-            x: classificationTab.x + (classificationTab.width / 2) - (width / 2)
-            y: classificationTab.y + (classificationTab.height / 2) - (height / 2)
-            source: "gfx/arrow_left.png"
-          }
-          Image {
-            x: classificationTab.x + (classificationTab.width / 2) - (width / 2)
-            y: classificationTab.y + (classificationTab.height / 2) - (height / 2)
-            source: "gfx/arrow_right.png"
+      ChartView {
+        id: pointsChart
+        anchors.fill: parent
+        antialiasing: true
+        backgroundColor: "black"
+
+        theme: ChartView.ChartThemeDark
+
+        ValueAxis {
+          id: pointsAxisX
+          color: "white"
+          min: 0
+          max: 1
+        }
+        ValueAxis {
+          id: pointsAxisY
+          color: "white"
+          min: 0
+          max: 1
+        }
+
+        ScatterSeries {
+          id: leftPointsSeries
+          name: "Left"
+
+          color: "magenta"
+
+          axisX: pointsAxisX
+          axisY: pointsAxisY
+
+          borderWidth: 1
+          markerSize: 10
+        }
+        ScatterSeries {
+          id: rightPointsSeries
+          name: "Right"
+
+          color: "cyan"
+
+          axisX: pointsAxisX
+          axisY: pointsAxisY
+
+          borderWidth: 1
+          markerSize: 10
+        }
+        ScatterSeries {
+          id: nonePointsSeries
+          name: "None"
+
+          color: "yellow"
+
+          axisX: pointsAxisX
+          axisY: pointsAxisY
+
+          borderWidth: 1
+          markerSize: 10
+        }
+        ScatterSeries {
+          id: inputPointSeries
+          name: "Input"
+          markerShape: ScatterSeries.MarkerShapeRectangle
+          borderWidth: 1
+          markerSize: 25
+
+          color: "red"
+
+          axisX: pointsAxisX
+          axisY: pointsAxisY
+        }
+
+        Item {
+          id: classificationArrow
+          opacity: 0.25
+          StackLayout {
+            id: classificationLayout
+            currentIndex: backendRecorder.currentBodyPart
+            Item {}
+            Image {
+              scale: 0.5
+
+              source: "gfx/arrow_left.png"
+              x: classificationTab.x + (classificationTab.width / 2) - (width / 2)
+              y: classificationTab.y + (classificationTab.height / 2) - (height / 2)
+            }
+            Image {
+              scale: 0.5
+
+              source: "gfx/arrow_right.png"
+              x: classificationTab.x + (classificationTab.width / 2) - (width / 2)
+              y: classificationTab.y + (classificationTab.height / 2) - (height / 2)
+            }
           }
         }
       }
