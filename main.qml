@@ -205,7 +205,8 @@ ApplicationWindow {
     }
 
     onNewInput: {
-      plotter.plotClassificationPoints(inputPointSeries, input)
+      plotter.plotClassificationPoints(inputPointSeries, input, pointsAxisX,
+                                       pointsAxisY)
     }
   }
 

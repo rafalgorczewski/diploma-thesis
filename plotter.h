@@ -17,7 +17,10 @@ public:
   explicit Plotter(QObject *parent = nullptr);
 
 Q_INVOKABLE void plotPowers(QBarSeries* series, QVector<double> powers, QValueAxis* yAxis);
-Q_INVOKABLE void plotClassificationPoints(QScatterSeries* inputSeries, QVector<double> projectedInput);
+Q_INVOKABLE void plotClassificationPoints(QScatterSeries* inputSeries,
+                                          QVector<double> projectedInput,
+                                          QValueAxis* xAxis,
+                                          QValueAxis* yAxis);
 Q_INVOKABLE void plotClassificationPoints(QScatterSeries* leftSeries,
                                           QScatterSeries* rightSeries,
                                           QScatterSeries* noneSeries,

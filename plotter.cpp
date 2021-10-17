@@ -26,10 +26,24 @@ void Plotter::plotPowers(QBarSeries* series, QVector<double> powers, QValueAxis*
   series->append(set);
 }
 
-void Plotter::plotClassificationPoints(QScatterSeries* inputSeries, QVector<double> projectedInput)
+void Plotter::plotClassificationPoints(QScatterSeries* inputSeries,
+                                        QVector<double> projectedInput,
+                                        QValueAxis* xAxis,
+                                        QValueAxis* yAxis)
 {
+  const double minX = xAxis->min();
+  const double minY = yAxis->min();
+  const double maxX = xAxis->max();
+  const double maxY = yAxis->max();
+
+  const double inputX = projectedInput[0];
+  const double inputY = projectedInput[1];
+
+  const double plottedX = std::clamp(inputX, minX, maxX);
+  const double plottedY = std::clamp(inputY, minY, maxY);
+
   inputSeries->clear();
-  inputSeries->append(projectedInput[0], projectedInput[1]);
+  inputSeries->append(plottedX, plottedY);
 }
 
 void Plotter::plotClassificationPoints(QScatterSeries* leftSeries,
