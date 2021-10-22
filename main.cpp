@@ -19,8 +19,6 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
 
-    qRegisterMetaType<const cv::Mat&>("const cv::Mat&");
-
     qmlRegisterType<CalibrationBackend>("Backend.Calibration",1,0,"Calibration");
     qmlRegisterType<RecorderBackend>("Backend.Recorder",1,0,"Recorder");
     qmlRegisterType<Configurator>("Backend.Configurator",1,0,"Configurator");

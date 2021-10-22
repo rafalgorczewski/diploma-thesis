@@ -5,7 +5,7 @@
 namespace th {
 
   void StreamReader::resolve_stream(const std::string& name) {
-    m_stream_info = lsl::resolve_stream("name", name)[0];
+    m_stream_info = lsl::resolve_stream("type", "EEG")[0];
     m_stream = Stream(static_cast<std::size_t>(m_stream_info.channel_count()));
   }
 
