@@ -63,7 +63,7 @@ void CalibrationBackend::fillPartsQueue()
 {
   m_partsQueue = {};
   for (int i = 0; i < m_runsMaxCount; ++i) {
-    m_partsQueue.push_back(th::BodyPart((i % 2) + 1));
+    m_partsQueue.push_back(th::BodyPart(i % 3));
   }
 
   std::random_device rd;

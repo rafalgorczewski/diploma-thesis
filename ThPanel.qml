@@ -385,6 +385,7 @@ Rectangle {
 
           onClicked: {
             calibrateButton.enabled = false
+            backendRecorder.clearClassifierData()
             backendCalibration.calibrate(runsSpinBox.value)
             tabBar.currentIndex = 1
           }
@@ -434,6 +435,8 @@ Rectangle {
 
           onClicked: {
             enabled = false
+            calibrateButton.enabled = false
+            loadCalibrationButton.enabled = false
             stopButton.enabled = true
             backendRecorder.classifyRecord(
                   preparationTime + imageryTime + cooldownTime)

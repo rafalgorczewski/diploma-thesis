@@ -42,6 +42,7 @@ public:
 
   Q_INVOKABLE void saveClassifierData(QString configName);
   Q_INVOKABLE void loadClassifierData(QString file);
+  Q_INVOKABLE void clearClassifierData();
 
   Q_INVOKABLE void stopRecording();
 
@@ -62,7 +63,7 @@ private:
   void calibrateRecordAsync(int seconds, int bodyPart);
   void classifyRecordAsync(int runTime);
 
-  cv::Mat transformBuffer(QVector<QVector<double>> input, int currentSecond);
+  cv::Mat transformBuffer(QVector<QVector<double>> input, int currentSecond, int runTime);
 
 private:
   th::StreamReader m_streamReader;

@@ -148,6 +148,7 @@ ApplicationWindow {
     onCalibrationStarted: {
       panel.calibrateButton.enabled = false
       panel.classifyButton.enabled = false
+      calibrationProgress.value = 0
     }
     onRunStarted: {
       calibrationArrowDisable()
@@ -161,6 +162,9 @@ ApplicationWindow {
     }
     onCooldownPhaseStarted: {
       calibrationArrowDisable()
+    }
+    onCooldownPhaseFinished: {
+      calibrationProgress.value += 1
     }
     onCalibrationFinished: {
       panel.calibrateButton.enabled = true
@@ -416,6 +420,16 @@ ApplicationWindow {
         x: calibrationTab.x + (calibrationTab.width / 2) - (width / 2)
         y: calibrationTab.y + (calibrationTab.height / 2) - (height / 2)
         source: "gfx/arrow_right.png"
+      }
+
+      ProgressBar {
+        id: calibrationProgress
+
+        anchors.bottom: parent.bottom
+        width: parent.width
+        height: 10
+        from: 0
+        to: panel.runsCount
       }
     }
     Item {
