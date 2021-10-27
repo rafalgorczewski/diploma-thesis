@@ -4,7 +4,7 @@ project(thesis_lib)
 include(FetchContent)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -O0 -g")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -O2")
 
 FetchContent_Declare(opencv
     GIT_REPOSITORY https://github.com/huihut/OpenCV-MinGW-Build.git

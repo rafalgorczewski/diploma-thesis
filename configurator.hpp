@@ -25,6 +25,8 @@ public:
   Q_INVOKABLE void loadConfiguration(QString name);
 
 signals:
+  void configurationLoaded();
+
   void fileNameChanged();
   void channelsModelChanged();
   void runsCountChanged();

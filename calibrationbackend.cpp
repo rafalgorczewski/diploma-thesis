@@ -13,10 +13,6 @@ CalibrationBackend::CalibrationBackend(QObject* parent) : QObject(parent) {
   m_imageryTimer.setSingleShot(true);
   m_cooldownTimer.setSingleShot(true);
 
-  m_preparationTimer.setInterval(m_preparationTime * 1000);
-  m_imageryTimer.setInterval(m_imageryTime * 1000);
-  m_cooldownTimer.setInterval(m_cooldownTime * 1000);
-
   connect(&m_preparationTimer, &QTimer::timeout, [this]{
     emit preparationPhaseFinished();
     emit imageryPhaseStarted();
@@ -45,6 +41,8 @@ int CalibrationBackend::arrowIndex() const {
 }
 
 void CalibrationBackend::calibrate(int runsMaxCount) {
+  updateTimerIntervals();
+
   m_runsMaxCount = runsMaxCount;
   fillPartsQueue();
 
@@ -71,4 +69,11 @@ void CalibrationBackend::fillPartsQueue()
   std::random_device rd;
   std::mt19937 g(rd());
   std::shuffle(m_partsQueue.begin(), m_partsQueue.end(), g);
+}
+
+void CalibrationBackend::updateTimerIntervals()
+{
+  m_preparationTimer.setInterval(m_preparationTime * 1000);
+  m_imageryTimer.setInterval(m_imageryTime * 1000);
+  m_cooldownTimer.setInterval(m_cooldownTime * 1000);
 }

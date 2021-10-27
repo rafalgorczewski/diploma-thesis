@@ -25,17 +25,18 @@ void RecorderBackend::resolveStream()
 void RecorderBackend::calibrateRecord(int seconds, int bodyPart)
 {
   m_futureWatcher.waitForFinished();
+  m_classifier = {};
   auto future = QtConcurrent::run([this, seconds, bodyPart] {
     calibrateRecordAsync(seconds, bodyPart);
   });
   m_futureWatcher.setFuture(future);
 }
 
-void RecorderBackend::classifyRecord()
+void RecorderBackend::classifyRecord(int runTime)
 {
   m_futureWatcher.waitForFinished();
-  auto future = QtConcurrent::run([this] {
-    classifyRecordAsync();
+  auto future = QtConcurrent::run([this, runTime] {
+    classifyRecordAsync(runTime);
   });
   m_futureWatcher.setFuture(future);
 }
@@ -44,6 +45,7 @@ void RecorderBackend::trainClassifier()
 {
   m_futureWatcher.waitForFinished();
   m_classifier.train();
+  emit classifierTrained();
 }
 
 QVector<QVector<double>> RecorderBackend::getClassifierProjectedData() const
@@ -92,12 +94,15 @@ void RecorderBackend::calibrateRecordAsync(int seconds, int bodyPart)
   std::vector<int> channels = getChannels();
   std::vector<std::pair<int, int>> bands = getBands();
 
+  auto start = std::chrono::steady_clock::now();
+  cv::Mat input{};
+  m_streamReader.open();
   for (int second = 1; second <= seconds; ++second) {
     m_streamReader.read(1000ms);
 
-    cv::Mat input{};
     for (std::size_t i = 0; i < channels.size(); ++i) {
       QVector<double> channelPowers;
+      channelPowers.reserve(bands.size());
       for (std::size_t j = 0; j < bands.size(); ++j) {
         const double power = m_streamReader.spectrum(channels[i]).band_power(bands[j].first, bands[j].second);
         input.push_back(power);
@@ -106,49 +111,83 @@ void RecorderBackend::calibrateRecordAsync(int seconds, int bodyPart)
 
       emit channelPowersChanged(channels[i], channelPowers);
     }
-    m_classifier.feed_data(bodyPart, input.t());
 
     m_streamReader.clear();
   }
-
-  emit classifierTrained();
+  m_streamReader.close();
+  m_classifier.feed_data(bodyPart, input.t());
+  auto end = std::chrono::steady_clock::now();
+  std::chrono::duration<double> elapsed_seconds = end-start;
+  std::cout << "elapsed time: " << elapsed_seconds.count() << std::endl;
 }
 
-void RecorderBackend::classifyRecordAsync()
+void RecorderBackend::classifyRecordAsync(int runTime)
 {
   using namespace std::chrono_literals;
 
   std::vector<int> channels = getChannels();
   std::vector<std::pair<int, int>> bands = getBands();
 
+  QVector<QVector<double>> secondPowers(runTime);
+  bool classificationReady = false;
+  m_streamReader.open();
   while (!m_stopRequested) {
-    m_streamReader.read(1000ms);
+    for (int runSec = 0; (runSec < runTime) && !m_stopRequested; ++runSec){
+      m_streamReader.read(1000ms);
 
-    cv::Mat input{};
-    for (std::size_t i = 0; i < channels.size(); ++i) {
-      QVector<double> channelPowers;
-      for (std::size_t j = 0; j < bands.size(); ++j) {
-        const double power = m_streamReader.spectrum(channels[i]).band_power(bands[j].first, bands[j].second);
-        input.push_back(power);
-        channelPowers.push_back(power);
+      QVector<double> input;
+      for (std::size_t i = 0; i < channels.size(); ++i) {
+        QVector<double> channelPowers;
+        for (std::size_t j = 0; j < bands.size(); ++j) {
+          const double power = m_streamReader.spectrum(channels[i]).band_power(bands[j].first, bands[j].second);
+          input.push_back(power);
+          channelPowers.push_back(power);
+        }
+
+        emit channelPowersChanged(channels[i], channelPowers);
       }
 
-      emit channelPowersChanged(channels[i], channelPowers);
+      secondPowers[runSec] = input;
+
+      if (classificationReady) {
+        const auto transformedBuffer = transformBuffer(secondPowers, runSec);
+
+        m_currentBodyPart = m_classifier(transformedBuffer);
+
+        const auto projectedInput = m_classifier.projectInput(transformedBuffer);
+        QVector<double> labelsVec;
+        for (int i = 0; i < projectedInput.cols; ++i) {
+          labelsVec.push_back(projectedInput.at<double>(0, i));
+        }
+        emit newInput(labelsVec);
+
+        emit currentBodyPartChanged(m_currentBodyPart);
+      }
+
+      m_streamReader.clear();
     }
-    m_currentBodyPart = m_classifier(input.t());
-
-    const auto projectedInput = m_classifier.projectInput(input.t());
-    QVector<double> labelsVec;
-    for (int i = 0; i < projectedInput.cols; ++i) {
-      labelsVec.push_back(projectedInput.at<double>(0, i));
-    }
-    emit newInput(labelsVec);
-
-    emit currentBodyPartChanged(m_currentBodyPart);
-
-    m_streamReader.clear();
+    classificationReady = true;
   }
+  m_streamReader.close();
   m_stopRequested = false;
+}
+
+cv::Mat RecorderBackend::transformBuffer(QVector<QVector<double>> input, int currentSecond)
+{
+  cv::Mat transformed{};
+
+  for (int sec = currentSecond; sec < input.size(); ++sec) {
+    for (int i = 0; i < input[sec].size(); ++i) {
+      transformed.push_back(input[sec][i]);
+    }
+  }
+  for (int sec = 0; sec < currentSecond; ++sec) {
+    for (int i = 0; i < input[sec].size(); ++i) {
+      transformed.push_back(input[sec][i]);
+    }
+  }
+
+  return transformed.t();
 }
 
 std::vector<int> RecorderBackend::getChannels() {

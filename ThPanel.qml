@@ -294,7 +294,7 @@ Rectangle {
             from: 1
             to: 100
 
-            value: 1
+            value: 10
           }
         }
       }
@@ -435,7 +435,8 @@ Rectangle {
           onClicked: {
             enabled = false
             stopButton.enabled = true
-            backendRecorder.classifyRecord()
+            backendRecorder.classifyRecord(
+                  preparationTime + imageryTime + cooldownTime)
             tabBar.currentIndex = 2
           }
         }

@@ -48,6 +48,8 @@ private:
   void startRun();
   void fillPartsQueue();
 
+  void updateTimerIntervals();
+
 private:
   th::BodyPart m_bodyPart = th::BodyPart::None;
 

@@ -73,4 +73,6 @@ void Configurator::loadConfiguration(QString name)
   }
 
   m_fileName = name;
+
+  emit configurationLoaded();
 }

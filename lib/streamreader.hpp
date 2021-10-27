@@ -14,6 +14,8 @@ namespace th {
   class StreamReader {
    public:
     void resolve_stream(const std::string& name);
+    void open();
+    void close();
     void read(std::chrono::milliseconds ms);
     Spectrum spectrum(std::size_t channel_number);
 
@@ -21,6 +23,7 @@ namespace th {
 
    private:
     lsl::stream_info m_stream_info;
+    lsl::stream_inlet m_inlet{{}};
     Stream m_stream;
   };
 

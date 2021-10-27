@@ -153,15 +153,14 @@ ApplicationWindow {
       calibrationArrowDisable()
     }
     onPreparationPhaseStarted: {
-      backendRecorder.calibrateRecord(preparationTime, 0)
+      backendRecorder.calibrateRecord(
+            preparationTime + imageryTime + cooldownTime, arrowIndex)
     }
     onImageryPhaseStarted: {
       calibrationSelectArrow(arrowIndex)
-      backendRecorder.calibrateRecord(imageryTime, arrowIndex)
     }
     onCooldownPhaseStarted: {
       calibrationArrowDisable()
-      backendRecorder.calibrateRecord(cooldownTime, 0)
     }
     onCalibrationFinished: {
       panel.calibrateButton.enabled = true
@@ -222,6 +221,12 @@ ApplicationWindow {
 
     onClearElectrodes: electrodesModel.clear()
     onClearBands: bandsModel.clear()
+
+    onConfigurationLoaded: {
+      panel.preparationTime = preparationTime
+      panel.imageryTime = imageryTime
+      panel.cooldownTime = cooldownTime
+    }
 
     onNewChannelLoaded: addNewChannel(number, name)
     onNewBandLoaded: addNewBand(min, max)

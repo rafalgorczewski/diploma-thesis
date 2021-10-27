@@ -34,7 +34,7 @@ public:
   Q_INVOKABLE void resolveStream();
 
   Q_INVOKABLE void calibrateRecord(int seconds, int bodyPart);
-  Q_INVOKABLE void classifyRecord();
+  Q_INVOKABLE void classifyRecord(int runTime);
 
   Q_INVOKABLE void trainClassifier();
   Q_INVOKABLE QVector<QVector<double>> getClassifierProjectedData() const;
@@ -60,7 +60,9 @@ private:
   std::vector<int> getChannels();
   std::vector<std::pair<int, int>> getBands();
   void calibrateRecordAsync(int seconds, int bodyPart);
-  void classifyRecordAsync();
+  void classifyRecordAsync(int runTime);
+
+  cv::Mat transformBuffer(QVector<QVector<double>> input, int currentSecond);
 
 private:
   th::StreamReader m_streamReader;

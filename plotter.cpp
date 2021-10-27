@@ -62,21 +62,25 @@ void Plotter::plotClassificationPoints(QScatterSeries* leftSeries,
     if (row[0] < minX) {
       minX = row[0];
     }
-    if (row[1] < minY) {
-      minY = row[1];
-    }
-
     if (row[0] > maxX) {
       maxX = row[0];
+    }
+
+    if (row[1] < minY) {
+      minY = row[1];
     }
     if (row[1] > maxY) {
       maxY = row[1];
     }
   }
-  xAxis->setMin(minX);
-  xAxis->setMax(maxX);
-  yAxis->setMin(minY);
-  yAxis->setMax(maxY);
+
+  double offsetX = std::abs(maxX - minX) / 5;
+  double offsetY = std::abs(maxY - minY) / 5;
+
+  xAxis->setMin(minX - offsetX);
+  xAxis->setMax(maxX + offsetX);
+  yAxis->setMin(minY - offsetY);
+  yAxis->setMax(maxY + offsetY);
 
   leftSeries->clear();
   rightSeries->clear();
