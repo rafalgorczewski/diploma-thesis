@@ -109,6 +109,8 @@ ApplicationWindow {
       path = path.replace(/^(file:\/{3})/, "")
       var cleanPath = decodeURIComponent(path)
       backendRecorder.loadClassifierData(cleanPath)
+      panel.loadCalibrationButton.enabled = false
+      panel.calibrateButton.enabled = false
       panel.classifyButton.enabled = true
     }
   }
@@ -167,7 +169,6 @@ ApplicationWindow {
       calibrationProgress.value += 1
     }
     onCalibrationFinished: {
-      panel.calibrateButton.enabled = true
       panel.classifyButton.enabled = true
 
       var str = configurator.fileName
@@ -427,7 +428,7 @@ ApplicationWindow {
 
         anchors.bottom: parent.bottom
         width: parent.width
-        height: 10
+        height: 32
         from: 0
         to: panel.runsCount
       }

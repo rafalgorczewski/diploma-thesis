@@ -24,7 +24,7 @@ public:
   void load_data(const std::string& file);
 
 private:
-  cv::LDA m_lda{};
+  cv::LDA m_lda{2};
   cv::Mat m_projected{};
 
   cv::Mat m_data{};

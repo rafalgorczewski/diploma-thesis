@@ -54,10 +54,10 @@ void Plotter::plotClassificationPoints(QScatterSeries* leftSeries,
                                        QValueAxis* xAxis,
                                        QValueAxis* yAxis)
 {
-  double minX{};
-  double minY{};
-  double maxX{};
-  double maxY{};
+  double minX = projectedData[0][0];
+  double maxX = projectedData[0][0];
+  double minY = projectedData[0][1];
+  double maxY = projectedData[0][1];
   for (const auto& row : projectedData) {
     if (row[0] < minX) {
       minX = row[0];

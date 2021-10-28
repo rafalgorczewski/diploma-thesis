@@ -14,6 +14,7 @@ Rectangle {
   property alias runsCount: runsSpinBox.value
 
   property alias classifyButton: classifyButton
+  property alias loadCalibrationButton: loadCalibrationButton
   property alias calibrateButton: calibrateButton
   color: "black"
 
@@ -384,7 +385,8 @@ Rectangle {
           text: "Start calibration"
 
           onClicked: {
-            calibrateButton.enabled = false
+            enabled = false
+            loadCalibrationButton.enabled = false
             backendRecorder.clearClassifierData()
             backendCalibration.calibrate(runsSpinBox.value)
             tabBar.currentIndex = 1
@@ -451,7 +453,6 @@ Rectangle {
           onClicked: {
             backendRecorder.stopRecording()
             enabled = false
-            classifyButton.enabled = true
           }
         }
       }

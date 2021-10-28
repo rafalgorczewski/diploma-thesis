@@ -10,17 +10,6 @@ namespace th {
     m_stream = Stream(static_cast<std::size_t>(m_stream_info.channel_count()));
   }
 
-  void StreamReader::open()
-  {
-    m_inlet.open_stream();
-  }
-
-  void StreamReader::close()
-  {
-    m_inlet.close_stream();
-    m_inlet.flush();
-  }
-
   void StreamReader::read(std::chrono::milliseconds ms) {
     using std::chrono::steady_clock, std::chrono::duration_cast;
 
@@ -35,6 +24,11 @@ namespace th {
         m_stream.channel(i).add_sample(samples[i]);
       }
     }
+  }
+
+  void StreamReader::flush()
+  {
+    m_inlet.flush();
   }
 
   Spectrum StreamReader::spectrum(std::size_t channel_number) {

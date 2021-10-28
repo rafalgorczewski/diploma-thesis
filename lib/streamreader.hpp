@@ -14,9 +14,9 @@ namespace th {
   class StreamReader {
    public:
     void resolve_stream(const std::string& name);
-    void open();
-    void close();
     void read(std::chrono::milliseconds ms);
+    void flush();
+
     Spectrum spectrum(std::size_t channel_number);
 
     void clear();

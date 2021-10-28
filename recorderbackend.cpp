@@ -100,7 +100,6 @@ void RecorderBackend::calibrateRecordAsync(int seconds, int bodyPart)
   std::vector<std::pair<int, int>> bands = getBands();
 
   cv::Mat input{};
-  m_streamReader.open();
   for (int second = 1; second <= seconds; ++second) {
     m_streamReader.read(1000ms);
 
@@ -118,7 +117,6 @@ void RecorderBackend::calibrateRecordAsync(int seconds, int bodyPart)
 
     m_streamReader.clear();
   }
-  m_streamReader.close();
   m_classifier.feed_data(bodyPart, input.t());
 }
 
@@ -126,12 +124,13 @@ void RecorderBackend::classifyRecordAsync(int runTime)
 {
   using namespace std::chrono_literals;
 
+  m_streamReader.flush();
+
   std::vector<int> channels = getChannels();
   std::vector<std::pair<int, int>> bands = getBands();
 
   QVector<QVector<double>> secondPowers(runTime, QVector<double>(channels.size() * bands.size(), 0));
   int runSec = 0;
-  m_streamReader.open();
   while (!m_stopRequested) {
     m_streamReader.read(1000ms);
 
@@ -166,7 +165,6 @@ void RecorderBackend::classifyRecordAsync(int runTime)
     ++runSec;
     runSec %= runTime;
   }
-  m_streamReader.close();
   m_stopRequested = false;
 }
 
