@@ -4,8 +4,8 @@
 ### Main screen
 ![Main](readme/main.png)
 
-### Calibration screen
+### Calibration arrows
 ![Calibration](readme/calibration.png)
 
-### Classification screen
+### Classification chart
 ![Classification](readme/classification.png)
